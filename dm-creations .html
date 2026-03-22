@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DM Creations — 3D Printed Objects</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a26;--card:#13131e;--accent:#e8ff47;--accent2:#7c4dff;--red:#ff4d6d;--green:#25d366;--text:#f0f0f8;--muted:#6e6e90;--border:rgba(255,255,255,0.07);--nh:62px;--px:clamp(14px,5vw,64px);}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;line-height:1.5;}
+h1,h2,h3,h4,h5{font-family:'Syne',sans-serif;line-height:1.15;}
+button{cursor:pointer;font-family:inherit;border:none;outline:none;}
+a{text-decoration:none;color:inherit;}
+canvas{display:block;}
+input,select,textarea{font-family:'DM Sans',sans-serif;}
+nav{position:fixed;inset:0 0 auto 0;z-index:900;height:var(--nh);background:rgba(10,10,15,.96);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 var(--px);gap:10px;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(15px,2.8vw,20px);color:var(--accent);white-space:nowrap;flex-shrink:0;}
+.logo span{color:var(--text);}
+.nav-links{display:flex;list-style:none;gap:clamp(12px,2vw,28px);margin:0 auto;}
+.nav-links a{color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;transition:color .2s;white-space:nowrap;}
+.nav-links a:hover,.nav-links a.active{color:var(--text);}
+.nav-end{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.srch-wrap{position:relative;}
+.srch-inp{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 12px 8px 33px;border-radius:8px;font-size:13px;width:clamp(100px,14vw,190px);transition:width .25s,border-color .2s;}
+.srch-inp::placeholder{color:var(--muted);}
+.srch-inp:focus{outline:none;border-color:var(--accent);width:clamp(140px,20vw,240px);}
+.srch-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted);pointer-events:none;}
+.cart-btn{display:flex;align-items:center;gap:6px;background:var(--accent);color:#0a0a0f;padding:8px clamp(10px,1.8vw,16px);border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:12.5px;transition:all .2s;white-space:nowrap;}
+.cart-btn:hover{filter:brightness(1.1);}
+.cart-badge{background:#0a0a0f;color:var(--accent);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;}
+.nav-login-btn{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 13px;border-radius:8px;font-size:12px;font-weight:600;transition:all .2s;}
+.nav-back-btn{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 13px;border-radius:8px;font-size:12px;font-weight:600;transition:all .2s;}
+.nav-back-btn:hover{border-color:rgba(255,255,255,.3);}
+.ham{display:none;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;background:none;padding:6px;border-radius:6px;border:1px solid var(--border);}
+.ham span{display:block;width:18px;height:2px;background:var(--text);border-radius:2px;transition:all .3s;}
+.ham.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.ham.open span:nth-child(2){opacity:0;}
+.ham.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+.drawer{display:none;position:fixed;top:var(--nh);left:0;right:0;z-index:899;background:rgba(10,10,15,.98);border-bottom:1px solid var(--border);padding:14px var(--px) 22px;flex-direction:column;gap:2px;}
+.drawer.open{display:flex;}
+.drawer-srch{position:relative;margin-bottom:10px;}
+.drawer-srch input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 14px 11px 36px;border-radius:10px;font-size:15px;}
+.drawer-srch input:focus{outline:none;border-color:var(--accent);}
+.drawer-srch .si{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);}
+.drawer a{display:flex;align-items:center;gap:10px;padding:13px 6px;border-bottom:1px solid var(--border);font-family:'Syne',sans-serif;font-weight:600;font-size:15px;color:var(--muted);cursor:pointer;transition:color .2s;}
+.drawer a:last-child{border-bottom:none;}
+.drawer a:hover,.drawer a.active{color:var(--accent);}
+.srch-drop{display:none;position:fixed;top:var(--nh);left:0;right:0;z-index:898;background:rgba(10,10,15,.98);border-bottom:1px solid var(--border);padding:16px var(--px);max-height:70vh;overflow-y:auto;}
+.srch-drop.open{display:block;}
+.sd-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;}
+.sd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:10px;}
+.sd-card{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;cursor:pointer;transition:all .2s;}
+.sd-card:hover{border-color:rgba(232,255,71,.4);}
+.sd-thumb{width:40px;height:40px;border-radius:7px;background:var(--bg3);overflow:hidden;flex-shrink:0;position:relative;}
+.sd-thumb canvas{position:absolute;top:0;left:0;width:100%!important;height:100%!important;}
+.sd-name{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;}
+.sd-price{color:var(--accent);font-size:11px;margin-top:1px;}
+.page{display:none;min-height:100vh;padding-top:var(--nh);}
+.page.active{display:block;}
+.fg{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+.fg label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.fg input,.fg select,.fg textarea{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;border-radius:8px;font-size:14px;transition:border-color .2s;width:100%;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--accent);}
+.fg select option{background:#1a1a26;}
+.fg textarea{resize:vertical;min-height:80px;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.btn-pri{background:var(--accent);color:#0a0a0f;padding:clamp(12px,1.5vw,14px) clamp(20px,2.5vw,28px);font-family:'Syne',sans-serif;font-weight:700;font-size:clamp(13px,1.2vw,15px);border-radius:10px;border:none;transition:all .25s;white-space:nowrap;}
+.btn-pri:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(232,255,71,.3);}
+.btn-out{background:transparent;color:var(--text);padding:clamp(12px,1.5vw,14px) clamp(20px,2.5vw,28px);font-family:'Syne',sans-serif;font-weight:600;font-size:clamp(13px,1.2vw,15px);border-radius:10px;border:1px solid var(--border);transition:all .25s;white-space:nowrap;}
+.btn-out:hover{border-color:rgba(255,255,255,.3);background:var(--bg3);}
+.hero{position:relative;overflow:hidden;min-height:calc(100vh - var(--nh));display:flex;align-items:center;background:radial-gradient(ellipse at 65% 40%,rgba(124,77,255,.18) 0%,transparent 55%),radial-gradient(ellipse at 10% 85%,rgba(232,255,71,.07) 0%,transparent 45%);}
+.hero-copy{position:relative;z-index:2;padding:clamp(40px,6vh,80px) var(--px);max-width:min(580px,100%);width:100%;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:var(--accent);letter-spacing:3px;text-transform:uppercase;margin-bottom:20px;}
+.hero h1{font-size:clamp(32px,6vw,78px);font-weight:800;margin-bottom:18px;letter-spacing:-1px;}
+.hero h1 em{color:var(--accent);font-style:normal;}
+.hero p{color:var(--muted);font-size:clamp(14px,1.5vw,17px);line-height:1.75;margin-bottom:16px;max-width:440px;}
+.special-banner{background:linear-gradient(135deg,rgba(124,77,255,.18),rgba(232,255,71,.09));border:1px solid rgba(232,255,71,.25);border-radius:12px;padding:14px 18px;margin-bottom:26px;max-width:480px;}
+.special-banner p{color:var(--text);font-size:13px;line-height:1.65;margin:0;}
+.special-banner strong{color:var(--accent);}
+.hero-btns{display:flex;flex-wrap:wrap;gap:12px;}
+.hero-canvas-wrap{position:absolute;right:0;top:0;bottom:0;width:50%;pointer-events:none;}
+.hero-canvas-wrap canvas{width:100%!important;height:100%!important;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.stat-item{padding:clamp(16px,3vw,28px) clamp(14px,3vw,40px);border-right:1px solid var(--border);}
+.stat-item:last-child{border-right:none;}
+.stat-n{font-family:'Syne',sans-serif;font-size:clamp(22px,3.5vw,38px);font-weight:800;color:var(--accent);}
+.stat-l{color:var(--muted);font-size:clamp(10px,1.2vw,13px);margin-top:3px;}
+.sec{padding:clamp(44px,6vw,80px) var(--px);}
+.sec-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:clamp(24px,4vw,48px);}
+.sec-title{font-size:clamp(24px,4vw,42px);font-weight:800;}
+.sec-title em{color:var(--accent);font-style:normal;}
+.tabs{display:flex;gap:7px;flex-wrap:wrap;}
+.tab{padding:7px clamp(12px,1.5vw,20px);border-radius:100px;font-size:12px;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .2s;white-space:nowrap;}
+.tab.on{background:var(--accent);color:#0a0a0f;border-color:var(--accent);}
+.tab:hover:not(.on){border-color:rgba(255,255,255,.25);color:var(--text);}
+.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:clamp(12px,2vw,22px);}
+.pc{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .3s,box-shadow .3s,border-color .3s;position:relative;}
+.pc:hover{transform:translateY(-5px);box-shadow:0 20px 55px rgba(0,0,0,.45);border-color:rgba(232,255,71,.25);}
+.pc-canvas{height:clamp(170px,22vw,245px);background:#111118;position:relative;overflow:hidden;}
+.pc-canvas canvas{position:absolute;top:0;left:0;width:100%!important;height:100%!important;display:block;background:#111118;}
+.pc-hint{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.75);color:var(--accent);font-size:10px;font-weight:700;padding:4px 11px;border-radius:100px;white-space:nowrap;pointer-events:none;z-index:2;}
+.pc-badge{position:absolute;top:10px;left:10px;z-index:3;padding:3px 9px;border-radius:100px;font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
+.badge-sale{background:var(--accent);color:#0a0a0f;}
+.badge-new{background:var(--accent2);color:#fff;}
+.badge-hot{background:var(--red);color:#fff;}
+.pc-body{padding:clamp(12px,2vw,16px);}
+.pc-name{font-family:'Syne',sans-serif;font-weight:700;font-size:clamp(13px,1.4vw,15px);margin-bottom:4px;}
+.pc-desc{color:var(--muted);font-size:12px;line-height:1.6;margin-bottom:10px;}
+.pc-price{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(15px,1.8vw,19px);color:var(--accent);margin-bottom:10px;}
+.pc-price s{font-size:12px;color:var(--muted);font-weight:400;margin-left:5px;}
+.stars-row{display:flex;align-items:center;gap:4px;margin-bottom:8px;}
+.stars{color:var(--accent);font-size:12px;}
+.rev-count{color:var(--muted);font-size:11px;}
+.pc-actions{display:flex;gap:7px;flex-wrap:wrap;}
+.ac-btn{flex:1;background:var(--accent2);color:#fff;padding:9px 10px;border-radius:7px;font-family:'Syne',sans-serif;font-weight:700;font-size:11px;transition:all .2s;white-space:nowrap;text-align:center;min-width:90px;}
+.ac-btn:hover{background:#9c6dff;}
+.ac-btn.done{background:var(--bg3);color:var(--accent);border:1px solid var(--accent);}
+.buy-btn{flex:1;background:#25a244;color:#fff;padding:9px 10px;border-radius:7px;font-family:'Syne',sans-serif;font-weight:700;font-size:11px;transition:all .2s;white-space:nowrap;text-align:center;min-width:90px;}
+.buy-btn:hover{background:#1e8c3a;}
+.reviews-section{margin-top:12px;border-top:1px solid var(--border);padding-top:10px;}
+.reviews-toggle{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--muted);font-size:11px;font-weight:600;padding:4px 0;cursor:pointer;transition:color .2s;}
+.reviews-toggle:hover{color:var(--text);}
+.reviews-list{margin-top:10px;display:none;flex-direction:column;gap:8px;}
+.reviews-list.open{display:flex;}
+.rev-item{background:var(--bg3);border-radius:8px;padding:10px 12px;}
+.rev-item-head{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:4px;justify-content:space-between;}
+.rev-author{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;}
+.rev-stars{color:var(--accent);font-size:11px;}
+.rev-date{color:var(--muted);font-size:10px;}
+.rev-text{color:var(--muted);font-size:11.5px;line-height:1.55;}
+.add-review-btn{margin-top:8px;width:100%;background:transparent;border:1px dashed var(--border);color:var(--muted);padding:7px;border-radius:7px;font-size:11px;font-weight:600;transition:all .2s;}
+.add-review-btn:hover{border-color:var(--accent);color:var(--accent);}
+.perks-bg{background:var(--bg2);}
+.perks{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:clamp(12px,2vw,22px);}
+.perk{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:clamp(18px,3vw,28px);text-align:center;}
+.perk-icon{font-size:clamp(24px,4vw,30px);margin-bottom:12px;}
+.perk h4{font-size:clamp(13px,1.3vw,15px);margin-bottom:6px;}
+.perk p{color:var(--muted);font-size:12px;line-height:1.6;}
+footer{background:var(--bg2);border-top:1px solid var(--border);padding:clamp(36px,5vw,60px) var(--px) clamp(20px,3vw,36px);}
+.footer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,170px),1fr));gap:clamp(20px,3vw,40px);margin-bottom:clamp(24px,3vw,48px);}
+.fl p{color:var(--muted);font-size:13px;line-height:1.7;margin-top:12px;max-width:260px;}
+.fc h5{font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;color:var(--muted);}
+.fc a{display:block;font-size:13px;color:var(--muted);margin-bottom:8px;cursor:pointer;transition:color .2s;}
+.fc a:hover{color:var(--accent);}
+.fbot{border-top:1px solid var(--border);padding-top:18px;display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;font-size:11px;color:var(--muted);}
+.cart-wrap{max-width:860px;margin:0 auto;padding:clamp(28px,5vw,60px) var(--px);}
+.cart-wrap>h2{font-size:clamp(24px,4vw,40px);font-weight:800;margin-bottom:clamp(20px,3vw,36px);}
+.cart-empty{text-align:center;padding:clamp(40px,8vw,80px) 0;color:var(--muted);}
+.cart-empty span{font-size:clamp(40px,8vw,64px);display:block;margin-bottom:16px;opacity:.35;}
+.ci{display:grid;grid-template-columns:auto 1fr;gap:clamp(10px,2vw,18px);align-items:start;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:clamp(12px,2vw,18px);margin-bottom:12px;}
+.ci-img{width:clamp(64px,10vw,88px);height:clamp(52px,8vw,70px);background:var(--bg2);border-radius:8px;overflow:hidden;position:relative;}
+.ci-img canvas{position:absolute;top:0;left:0;width:100%!important;height:100%!important;}
+.ci-name{font-family:'Syne',sans-serif;font-weight:700;font-size:clamp(13px,1.4vw,15px);margin-bottom:3px;}
+.ci-ctrl{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.qb{width:26px;height:26px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:5px;font-size:15px;display:flex;align-items:center;justify-content:center;}
+.qn{font-weight:700;font-size:14px;min-width:18px;text-align:center;}
+.ci-price{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--accent);}
+.rm-btn{color:var(--red);background:none;font-size:12px;margin-left:auto;padding:4px 6px;}
+.totals-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:clamp(18px,3vw,26px);margin-top:18px;}
+.tot-row{display:flex;justify-content:space-between;padding:6px 0;color:var(--muted);font-size:14px;}
+.tot-row.big{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(15px,2vw,20px);color:var(--text);border-top:1px solid var(--border);margin-top:8px;padding-top:14px;}
+.ck-btn{width:100%;background:var(--green);color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(14px,1.5vw,15px);padding:clamp(14px,2vw,17px);border-radius:10px;margin-top:12px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;border:none;}
+.ck-btn:hover{transform:translateY(-2px);}
+.login-page{min-height:calc(100vh - var(--nh));display:flex;align-items:center;justify-content:center;padding:var(--px);background:radial-gradient(ellipse at 50% 40%,rgba(124,77,255,.18) 0%,transparent 65%);}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:clamp(28px,5vw,52px);width:100%;max-width:420px;text-align:center;}
+.login-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(22px,4vw,28px);color:var(--accent);margin-bottom:6px;}
+.login-logo span{color:var(--text);}
+.login-tag{color:var(--muted);font-size:13px;margin-bottom:32px;line-height:1.6;}
+.login-divider{display:flex;align-items:center;gap:12px;margin:24px 0;color:var(--muted);font-size:12px;}
+.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.google-btn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:14px;border-radius:12px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:14px;font-weight:600;transition:all .25s;}
+.google-btn:hover{border-color:rgba(255,255,255,.3);}
+.guest-btn{width:100%;padding:12px;border-radius:12px;border:none;background:var(--accent);color:#0a0a0f;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;transition:all .2s;margin-top:14px;}
+.guest-btn:hover{transform:translateY(-2px);}
+.user-card{background:var(--card);border:1px solid var(--accent);border-radius:16px;padding:16px 20px;display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap;}
+.user-card-av{width:48px;height:48px;border-radius:50%;background:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;font-family:'Syne',sans-serif;font-weight:700;}
+.user-card-name{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;}
+.user-card-email{color:var(--muted);font-size:12px;}
+.user-card-logout{margin-left:auto;background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;transition:all .2s;}
+.user-card-logout:hover{border-color:var(--red);color:var(--red);}
+.goog-modal{display:none;position:fixed;inset:0;z-index:9950;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:16px;}
+.goog-modal.open{display:flex;}
+.goog-box{background:#fff;border-radius:16px;padding:32px;width:100%;max-width:360px;text-align:center;color:#333;}
+.goog-title{font-size:20px;font-weight:700;margin-bottom:6px;color:#202124;font-family:'Syne',sans-serif;}
+.goog-sub{font-size:13px;color:#5f6368;margin-bottom:24px;}
+.goog-inp{width:100%;border:1px solid #dadce0;border-radius:8px;padding:13px 14px;font-size:15px;color:#202124;margin-bottom:14px;}
+.goog-inp:focus{outline:none;border-color:#4285f4;}
+.goog-next{width:100%;background:#1a73e8;color:#fff;padding:13px;border-radius:8px;font-weight:700;font-size:14px;border:none;cursor:pointer;margin-bottom:10px;}
+.goog-cancel{background:none;border:none;color:#1a73e8;font-size:13px;cursor:pointer;}
+.contact-wrap{max-width:900px;margin:0 auto;padding:clamp(28px,5vw,60px) var(--px);}
+.contact-wrap>h2{font-size:clamp(24px,4vw,40px);font-weight:800;margin-bottom:10px;}
+.contact-sub{color:var(--muted);font-size:clamp(13px,1.4vw,15px);margin-bottom:clamp(28px,4vw,44px);line-height:1.7;}
+.cinfo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,205px),1fr));gap:clamp(10px,2vw,18px);margin-bottom:clamp(24px,3vw,36px);}
+.cinfo-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:clamp(18px,3vw,26px);transition:all .2s;}
+.cinfo-card:hover{border-color:rgba(232,255,71,.3);transform:translateY(-3px);}
+.cinfo-icon{font-size:26px;margin-bottom:12px;}
+.cinfo-card h3{font-size:clamp(14px,1.4vw,16px);margin-bottom:7px;}
+.cinfo-card p{color:var(--muted);font-size:12px;line-height:1.6;margin-bottom:10px;}
+.clink{display:block;color:var(--accent);font-size:13px;font-weight:600;margin-bottom:4px;}
+.cform{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:clamp(20px,4vw,36px);}
+.cform h3{font-size:clamp(16px,2vw,20px);margin-bottom:20px;}
+.send-btn{width:100%;background:var(--accent);color:#0a0a0f;border:none;padding:13px;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;border-radius:8px;transition:all .2s;margin-top:14px;}
+.send-btn:hover{transform:translateY(-2px);}
+.modal-ov{display:none;position:fixed;inset:0;z-index:9900;background:rgba(0,0,0,.82);backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:clamp(10px,3vw,24px);}
+.modal-ov.open{display:flex;}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:clamp(20px,4vw,36px);width:100%;max-width:480px;max-height:calc(100vh - 32px);overflow-y:auto;}
+.modal-box h2{font-size:clamp(18px,2.5vw,24px);margin-bottom:4px;}
+.modal-sub{color:var(--muted);font-size:13px;margin-bottom:22px;}
+.modal-footer{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+.wa-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:#25d366;color:#fff;padding:13px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;transition:all .2s;border:none;}
+.wa-btn:hover{background:#1eb858;transform:translateY(-2px);}
+.cancel-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:13px 20px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:600;font-size:13px;}
+.viewer-ov{display:none;position:fixed;inset:0;z-index:9800;background:rgba(0,0,0,.85);backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:clamp(10px,3vw,24px);}
+.viewer-ov.open{display:flex;}
+.viewer-box{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:clamp(16px,3vw,28px);width:100%;max-width:560px;max-height:calc(100vh - 32px);overflow-y:auto;}
+.viewer-title{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(16px,2.5vw,22px);margin-bottom:4px;}
+.viewer-hint{color:var(--muted);font-size:11px;margin-bottom:14px;}
+.viewer-cv{height:clamp(200px,38vw,320px);border-radius:10px;overflow:hidden;background:var(--bg2);margin-bottom:14px;position:relative;}
+.viewer-cv canvas{position:absolute;top:0;left:0;width:100%!important;height:100%!important;}
+.viewer-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:space-between;}
+.viewer-price{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(17px,2vw,22px);color:var(--accent);}
+.vbtn{padding:9px 14px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;border:none;}
+.vbtn-close{background:var(--bg3);border:1px solid var(--border);color:var(--text);}
+.vbtn-cart{background:var(--accent2);color:#fff;}
+.vbtn-buy{background:#25a244;color:#fff;}
+.rev-modal-ov{display:none;position:fixed;inset:0;z-index:9901;background:rgba(0,0,0,.82);backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:16px;}
+.rev-modal-ov.open{display:flex;}
+.rev-modal-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:clamp(20px,4vw,32px);width:100%;max-width:420px;}
+.rev-modal-box h3{font-size:clamp(16px,2vw,20px);margin-bottom:16px;}
+.star-pick{display:flex;gap:8px;margin-bottom:14px;}
+.star-pick button{font-size:22px;background:none;border:none;opacity:.35;transition:opacity .15s,transform .15s;}
+.star-pick button.lit{opacity:1;transform:scale(1.1);}
+.rev-submit{width:100%;background:var(--accent);color:#0a0a0f;padding:12px;border-radius:9px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;border:none;margin-top:12px;}
+.admin-login-wrap{min-height:calc(100vh - var(--nh));display:flex;align-items:center;justify-content:center;padding:var(--px);background:radial-gradient(ellipse at 30% 30%,rgba(255,77,109,.12) 0%,transparent 55%),radial-gradient(ellipse at 80% 70%,rgba(124,77,255,.12) 0%,transparent 55%);}
+.admin-login-box{background:var(--card);border:1px solid rgba(255,77,109,.3);border-radius:22px;padding:clamp(28px,5vw,52px);width:100%;max-width:420px;text-align:center;}
+.admin-login-box .shield{font-size:48px;margin-bottom:12px;}
+.admin-login-box h2{font-size:clamp(20px,3vw,26px);margin-bottom:6px;color:var(--red);}
+.admin-login-box>p{color:var(--muted);font-size:13px;margin-bottom:28px;line-height:1.6;}
+.admin-inp{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:13px 14px;border-radius:10px;font-size:15px;margin-bottom:12px;transition:border-color .2s;font-family:'DM Sans',sans-serif;}
+.admin-inp:focus{outline:none;border-color:var(--red);}
+.admin-login-btn{width:100%;background:var(--red);color:#fff;padding:14px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;transition:all .2s;margin-top:4px;}
+.admin-login-btn:hover{background:#ff2d50;transform:translateY(-2px);}
+.admin-err{color:var(--red);font-size:12px;margin-top:10px;display:none;}
+.admin-wrap{padding:clamp(20px,4vw,44px) var(--px);}
+.admin-topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:clamp(20px,3vw,36px);padding-bottom:clamp(16px,2vw,24px);border-bottom:1px solid var(--border);}
+.admin-topbar h1{font-size:clamp(20px,3vw,28px);color:var(--red);}
+.admin-topbar h1 span{color:var(--muted);font-size:.6em;font-weight:400;margin-left:8px;}
+.admin-logout-btn{background:transparent;border:1px solid var(--red);color:var(--red);padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;transition:all .2s;}
+.admin-logout-btn:hover{background:var(--red);color:#fff;}
+.admin-stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr));gap:clamp(10px,1.5vw,16px);margin-bottom:clamp(20px,3vw,36px);}
+.admin-stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:clamp(14px,2vw,20px);text-align:center;}
+.admin-stat-n{font-family:'Syne',sans-serif;font-size:clamp(22px,3vw,32px);font-weight:800;color:var(--accent);}
+.admin-stat-l{color:var(--muted);font-size:11px;margin-top:3px;}
+.admin-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:clamp(16px,2.5vw,28px);}
+.admin-tab{padding:8px clamp(14px,1.8vw,22px);border-radius:100px;font-size:12.5px;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .2s;white-space:nowrap;}
+.admin-tab.on{background:var(--red);color:#fff;border-color:var(--red);}
+.admin-tab:hover:not(.on){border-color:rgba(255,255,255,.25);color:var(--text);}
+.admin-panel{display:none;}
+.admin-panel.on{display:block;}
+.tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border);}
+.prod-table{width:100%;border-collapse:collapse;min-width:560px;}
+.prod-table th{background:var(--bg3);padding:12px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);white-space:nowrap;}
+.prod-table td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;}
+.prod-table tr:last-child td{border-bottom:none;}
+.prod-table tr:hover td{background:rgba(255,255,255,.02);}
+.td-name{font-family:'Syne',sans-serif;font-weight:700;}
+.td-cat{background:var(--bg3);color:var(--muted);padding:3px 9px;border-radius:100px;font-size:10px;font-weight:700;text-transform:uppercase;}
+.tbl-del{background:transparent;border:1px solid rgba(255,77,109,.4);color:var(--red);padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;transition:all .2s;}
+.tbl-del:hover{background:var(--red);color:#fff;}
+.tbl-edit{background:transparent;border:1px solid rgba(232,255,71,.3);color:var(--accent);padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;transition:all .2s;margin-right:4px;}
+.tbl-edit:hover{background:var(--accent);color:#0a0a0f;}
+.add-form{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:clamp(18px,3vw,32px);max-width:700px;margin-bottom:clamp(24px,3vw,36px);}
+.add-form h3{font-size:clamp(16px,2vw,20px);margin-bottom:20px;color:var(--accent);}
+.af-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.af-full{grid-column:1/-1;}
+.af-inp{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;border-radius:8px;font-size:14px;transition:border-color .2s;font-family:'DM Sans',sans-serif;}
+.af-inp:focus{outline:none;border-color:var(--accent);}
+.af-inp option{background:#1a1a26;}
+.af-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;}
+.af-submit{background:var(--accent);color:#0a0a0f;padding:13px 28px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;border:none;margin-top:10px;transition:all .2s;}
+.af-submit:hover{transform:translateY(-2px);}
+.settings-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:clamp(18px,3vw,28px);max-width:520px;margin-bottom:20px;}
+.settings-card h3{font-size:clamp(14px,1.8vw,17px);margin-bottom:16px;color:var(--accent);}
+.settings-save{background:var(--green);color:#fff;padding:10px 22px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;border:none;margin-top:6px;transition:all .2s;}
+.settings-save:hover{background:#1eb858;}
+.edit-modal-ov{display:none;position:fixed;inset:0;z-index:9950;background:rgba(0,0,0,.82);backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:16px;}
+.edit-modal-ov.open{display:flex;}
+.edit-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:clamp(18px,4vw,32px);width:100%;max-width:560px;max-height:calc(100vh - 32px);overflow-y:auto;}
+.edit-box h3{font-size:clamp(16px,2vw,20px);margin-bottom:18px;color:var(--accent);}
+.toast{position:fixed;z-index:9999;left:50%;bottom:clamp(16px,3vw,30px);transform:translateX(-50%) translateY(80px);background:var(--accent);color:#0a0a0f;padding:11px 22px;border-radius:100px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;opacity:0;transition:all .4s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;max-width:calc(100vw - 32px);text-align:center;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+@media(max-width:900px){.nav-links{display:none;}.ham{display:flex;}.srch-wrap{display:none;}}
+@media(max-width:700px){.hero-canvas-wrap{display:none;}.hero-copy{max-width:100%;}.stats{grid-template-columns:1fr 1fr;}.stat-item{border-right:none!important;border-bottom:1px solid var(--border);}.stat-item:nth-child(odd){border-right:1px solid var(--border)!important;}.stat-item:nth-last-child(-n+2){border-bottom:none;}.frow{grid-template-columns:1fr;}.af-grid{grid-template-columns:1fr;}.af-full{grid-column:auto;}}
+@media(max-width:500px){.pg{grid-template-columns:1fr;}.sec-head{flex-direction:column;}.tabs{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px;-webkit-overflow-scrolling:touch;}.tab{flex-shrink:0;}.cinfo-grid{grid-template-columns:1fr;}.footer-grid{grid-template-columns:1fr;}.modal-footer{flex-direction:column;}.stats{grid-template-columns:1fr 1fr;}}
+@media(max-width:360px){.stats{grid-template-columns:1fr;}.stat-item{border-right:none!important;border-bottom:1px solid var(--border)!important;}.stat-item:last-child{border-bottom:none!important;}}
+@media(min-width:1200px){.pg{grid-template-columns:repeat(3,1fr);}}
+@media(min-width:1600px){.pg{grid-template-columns:repeat(4,1fr);}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo" onclick="goTo('home')" style="cursor:pointer">DM <span>Creations</span></div>
+  <ul class="nav-links">
+    <li><a onclick="goTo('home')" id="nl-home" class="active">Home</a></li>
+    <li><a onclick="goTo('shop')" id="nl-shop">Shop</a></li>
+    <li><a onclick="goTo('cart')" id="nl-cart">Cart</a></li>
+    <li><a onclick="goTo('contact')" id="nl-contact">Contact</a></li>
+    <li><a onclick="goTo('adminlogin')" style="color:var(--red);opacity:.7;font-size:12px;">🛡 Admin</a></li>
+  </ul>
+  <div class="nav-end">
+    <button class="nav-back-btn" id="backBtn" onclick="navBack()" style="display:none;">← Back</button>
+    <div class="srch-wrap">
+      <span class="srch-ico">🔍</span>
+      <input class="srch-inp" id="deskSearch" type="text" placeholder="Search objects…" oninput="doSearch(this.value)" autocomplete="off">
+    </div>
+    <div id="navAuthArea"></div>
+    <button class="cart-btn" onclick="goTo('cart')">🛒 Cart <span class="cart-badge" id="cartBadge">0</span></button>
+    <button class="ham" id="hamBtn" onclick="toggleDrawer()"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="drawer" id="drawer">
+  <div class="drawer-srch"><span class="si">🔍</span><input type="text" id="mobSearch" placeholder="Search 3D objects…" oninput="doSearch(this.value)" autocomplete="off"></div>
+  <a onclick="navGo('home')">🏠 Home</a>
+  <a onclick="navGo('shop')">🛍 Shop</a>
+  <a onclick="navGo('cart')">🛒 Cart</a>
+  <a onclick="navGo('contact')">📞 Contact</a>
+  <a onclick="navGo('login')">👤 Login / Account</a>
+  <a onclick="navGo('adminlogin')" style="color:var(--red);opacity:.7;font-size:13px;">🛡 Admin Login</a>
+</div>
+<div class="srch-drop" id="srchDrop">
+  <div class="sd-label" id="sdLabel">Results</div>
+  <div class="sd-grid" id="sdGrid"></div>
+</div>
+<div class="page active" id="page-home">
+  <section class="hero">
+    <div class="hero-copy">
+      <div class="hero-eyebrow">🖨 Premium 3D Printing Studio — Delhi</div>
+      <h1>Objects Built <em>Layer by Layer</em></h1>
+      <p>Precision-crafted 3D printed objects from sculptural art to functional parts — every piece made to perfection.</p>
+      <div class="special-banner"><p>⭐ <strong>Special Orders on Demand!</strong> We manufacture unique custom 3D printed objects tailored to your requirements. <strong>Contact us to get your idea printed!</strong></p></div>
+      <div class="hero-btns">
+        <button class="btn-pri" onclick="goTo('shop')">Browse Collection</button>
+        <button class="btn-out" onclick="goTo('contact')">Custom Order →</button>
+      </div>
+    </div>
+    <div class="hero-canvas-wrap"><canvas id="heroCanvas"></canvas></div>
+  </section>
+  <div class="stats">
+    <div class="stat-item"><div class="stat-n">500+</div><div class="stat-l">Products Available</div></div>
+    <div class="stat-item"><div class="stat-n">12K+</div><div class="stat-l">Happy Customers</div></div>
+    <div class="stat-item"><div class="stat-n">0.1mm</div><div class="stat-l">Print Precision</div></div>
+    <div class="stat-item"><div class="stat-n">24hr</div><div class="stat-l">Fast Delivery</div></div>
+  </div>
+  <div id="homeUserCard" style="padding:24px var(--px) 0;display:none;"></div>
+  <section class="sec">
+    <div class="sec-head">
+      <div><div style="font-size:11px;color:var(--accent);font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px">COLLECTION</div><div class="sec-title">Featured <em>Objects</em></div></div>
+      <div class="tabs" id="homeTabs">
+        <button class="tab on" onclick="filter('all','homeGrid',this)">All</button>
+        <button class="tab" onclick="filter('decor','homeGrid',this)">Decor</button>
+        <button class="tab" onclick="filter('functional','homeGrid',this)">Functional</button>
+        <button class="tab" onclick="filter('art','homeGrid',this)">Art</button>
+      </div>
+    </div>
+    <div class="pg" id="homeGrid"></div>
+    <div style="text-align:center;margin-top:clamp(24px,3vw,40px)"><button class="btn-out" onclick="goTo('shop')">View All Products →</button></div>
+  </section>
+  <section class="sec perks-bg">
+    <div class="sec-title" style="text-align:center;margin-bottom:clamp(24px,4vw,44px)">Why <em>DM Creations</em>?</div>
+    <div class="perks">
+      <div class="perk"><div class="perk-icon">🎯</div><h4>Precision Print</h4><p>0.1 mm layer resolution — ultra-fine detail on every object.</p></div>
+      <div class="perk"><div class="perk-icon">🚚</div><h4>Fast Delivery</h4><p>Pan-India shipping in 24–48 hrs with real-time tracking.</p></div>
+      <div class="perk"><div class="perk-icon">🎨</div><h4>Custom Orders</h4><p>Upload your STL or describe your idea — we'll print it!</p></div>
+      <div class="perk"><div class="perk-icon">♻️</div><h4>Eco Filament</h4><p>Biodegradable PLA and recycled PETG — green printing.</p></div>
+    </div>
+  </section>
+  <footer>
+    <div class="footer-grid">
+      <div class="fl"><div class="logo">DM <span>Creations</span></div><p>Premium 3D printing studio crafting objects with industrial-grade precision — based in New Delhi.</p></div>
+      <div class="fc"><h5>Shop</h5><a onclick="goTo('shop')">All Products</a><a onclick="goTo('shop')">Home Decor</a><a onclick="goTo('shop')">Functional Parts</a><a onclick="goTo('shop')">Art Pieces</a></div>
+      <div class="fc"><h5>Company</h5><a>About Us</a><a>How We Print</a><a>Blog</a><a onclick="goTo('contact')">Contact</a></div>
+      <div class="fc"><h5>Reach Us</h5><a href="tel:+919996673842">📞 +91 99966 73842</a><a href="https://wa.me/919996673842" target="_blank">💬 WhatsApp</a><a href="/cdn-cgi/l/email-protection#751d1019191a35111816071014011c1a1b065b1c1b">✉ <span class="__cf_email__" data-cfemail="ed8588818182ad89808e9f888c998482839ec38483">[email&#160;protected]</span></a><a>📍 Okhla, New Delhi</a></div>
+    </div>
+    <div class="fbot"><span>© 2025 DM Creations. All rights reserved.</span><span>Privacy · Terms · Shipping Policy</span></div>
+  </footer>
+</div>
+<div class="page" id="page-shop">
+  <section class="sec">
+    <div class="sec-head">
+      <div class="sec-title">All <em>Products</em></div>
+      <div class="tabs" id="shopTabs">
+        <button class="tab on" onclick="filter('all','shopGrid',this)">All</button>
+        <button class="tab" onclick="filter('decor','shopGrid',this)">Decor</button>
+        <button class="tab" onclick="filter('functional','shopGrid',this)">Functional</button>
+        <button class="tab" onclick="filter('art','shopGrid',this)">Art</button>
+        <button class="tab" onclick="filter('miniature','shopGrid',this)">Miniatures</button>
+      </div>
+    </div>
+    <div class="pg" id="shopGrid"></div>
+  </section>
+</div>
+<div class="page" id="page-cart">
+  <div class="cart-wrap"><h2>Your <em style="color:var(--accent)">Cart</em></h2><div id="cartContent"></div></div>
+</div>
+<div class="page" id="page-contact">
+  <div class="contact-wrap">
+    <h2>Get in <em style="color:var(--accent)">Touch</em></h2>
+    <p class="contact-sub">Have a custom project? We make <strong>special orders on demand</strong> — contact us to manufacture something unique just for you!</p>
+    <div class="cinfo-grid">
+      <div class="cinfo-card"><div class="cinfo-icon">📞</div><h3>Call Us</h3><p>Mon–Sat, 9 AM–7 PM IST</p><a href="tel:+919996673842" class="clink">+91 99966 73842</a></div>
+      <div class="cinfo-card"><div class="cinfo-icon">💬</div><h3>WhatsApp</h3><p>Chat for quick queries and custom orders.</p><a href="https://wa.me/919996673842" class="clink" target="_blank">+91 99966 73842</a></div>
+      <div class="cinfo-card"><div class="cinfo-icon">✉️</div><h3>Email Us</h3><p>Reply guaranteed within 24 hours.</p><a href="/cdn-cgi/l/email-protection#036b666f6f6c43676e60716662776a6c6d702d6a6d" class="clink"><span class="__cf_email__" data-cfemail="c5ada0a9a9aa85a1a8a6b7a0a4b1acaaabb6ebacab">[email&#160;protected]</span></a></div>
+      <div class="cinfo-card"><div class="cinfo-icon">📍</div><h3>Visit Studio</h3><p>Tour our print facility by appointment.</p><span class="clink">Plot 47, Okhla Industrial Area</span><span class="clink">Phase II, New Delhi — 110020</span></div>
+    </div>
+    <div class="cform">
+      <h3>Send a Message</h3>
+      <div class="frow"><div class="fg"><label>Your Name</label><input type="text" placeholder="Arjun Sharma"></div><div class="fg"><label>Email</label><input type="email" placeholder="arjun@example.com"></div></div>
+      <div class="frow"><div class="fg"><label>Phone</label><input type="tel" placeholder="+91 …"></div><div class="fg"><label>Subject</label><select><option>Custom Order Inquiry</option><option>Product Question</option><option>Shipping</option><option>Special Manufacturing Order</option><option>Other</option></select></div></div>
+      <div class="fg"><label>Message</label><textarea placeholder="Tell us about your project or custom order…"></textarea></div>
+      <button class="send-btn" onclick="toast('Message sent! We\'ll reply within 24hrs 📩')">Send Message →</button>
+    </div>
+  </div>
+</div>
+<div class="page" id="page-login">
+  <div class="login-page"><div class="login-box" id="loginBox">
+    <div class="login-logo">DM <span>Creations</span></div>
+    <p class="login-tag">Sign in to track your orders, save favourites and get exclusive deals.</p>
+    <button class="google-btn" onclick="openGoogModal()">
+      <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continue with Google
+    </button>
+    <div class="login-divider">or</div>
+    <button class="guest-btn" onclick="loginGuest()">Continue as Guest</button>
+    <p style="color:var(--muted);font-size:11px;margin-top:18px;">By continuing you agree to our Terms of Service.</p>
+  </div></div>
+</div>
+<div class="page" id="page-adminlogin">
+  <div class="admin-login-wrap"><div class="admin-login-box">
+    <div class="shield">🛡️</div>
+    <h2>Admin Access</h2>
+    <p>Restricted to DM Creations administrators only.</p>
+    <input class="admin-inp" id="adminUser" type="text" placeholder="Admin Username" autocomplete="username">
+    <input class="admin-inp" id="adminPass" type="password" placeholder="Admin Password" onkeydown="if(event.key==='Enter')doAdminLogin()">
+    <button class="admin-login-btn" onclick="doAdminLogin()">🔓 Login as Admin</button>
+    <div class="admin-err" id="adminErr">❌ Incorrect username or password</div>
+    <p style="color:var(--muted);font-size:11px;margin-top:18px;">Default: <code style="color:var(--accent)">admin</code> / <code style="color:var(--accent)">dmcreations123</code></p>
+    <br><button class="btn-out" style="width:100%;font-size:13px;margin-top:8px;" onclick="goTo('home')">← Back to Store</button>
+  </div></div>
+</div>
+<div class="page" id="page-admin">
+  <div class="admin-wrap">
+    <div class="admin-topbar">
+      <h1>🛡️ Admin Panel <span>DM Creations</span></h1>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <button class="btn-out" style="font-size:12px;padding:7px 14px;" onclick="goTo('home')">← View Store</button>
+        <button class="admin-logout-btn" onclick="adminLogout()">Logout</button>
+      </div>
+    </div>
+    <div class="admin-stats-row" id="adminStatsRow"></div>
+    <div class="admin-tabs">
+      <button class="admin-tab on" onclick="switchAdminTab('products',this)">📦 Products</button>
+      <button class="admin-tab" onclick="switchAdminTab('add',this)">➕ Add Product</button>
+      <button class="admin-tab" onclick="switchAdminTab('settings',this)">⚙️ Settings</button>
+    </div>
+    <div class="admin-panel on" id="ap-products">
+      <div class="tbl-wrap"><table class="prod-table"><thead><tr><th>#</th><th>Name</th><th>Category</th><th>Price</th><th>Old Price</th><th>Badge</th><th>Shape</th><th>Actions</th></tr></thead><tbody id="adminTbody"></tbody></table></div>
+    </div>
+    <div class="admin-panel" id="ap-add">
+      <div class="add-form">
+        <h3>➕ Add New Product</h3>
+        <div class="af-grid">
+          <div><label class="af-label">Product Name *</label><input class="af-inp" id="af-name" placeholder="e.g. Spiral Vase"></div>
+          <div><label class="af-label">Category *</label><select class="af-inp" id="af-cat"><option value="decor">Decor</option><option value="art">Art</option><option value="functional">Functional</option><option value="miniature">Miniature</option></select></div>
+          <div><label class="af-label">Price (₹) *</label><input class="af-inp" id="af-price" type="number" placeholder="999"></div>
+          <div><label class="af-label">Old Price (₹) — sale only</label><input class="af-inp" id="af-old" type="number" placeholder="Leave blank"></div>
+          <div><label class="af-label">Badge</label><select class="af-inp" id="af-badge"><option value="">None</option><option value="new">NEW</option><option value="hot">HOT</option><option value="sale">SALE</option></select></div>
+          <div><label class="af-label">3D Shape</label><select class="af-inp" id="af-shape"><option value="cube">Cube</option><option value="vase">Vase</option><option value="skull">Skull</option><option value="stand">Stand</option><option value="lamp">Lamp</option><option value="sword">Sword</option><option value="clip">Torus/Clip</option><option value="tower">Tower/Cone</option><option value="pot">Pot</option><option value="sphere">Sphere</option></select></div>
+          <div><label class="af-label">3D Colour (hex e.g. #7c4dff)</label><input class="af-inp" id="af-color" placeholder="#7c4dff"></div>
+          <div><label class="af-label">Rating (0–5)</label><input class="af-inp" id="af-rating" type="number" min="0" max="5" step="0.1" placeholder="4.8"></div>
+          <div class="af-full"><label class="af-label">Description *</label><textarea class="af-inp" id="af-desc" style="min-height:80px;resize:vertical" placeholder="Short product description…"></textarea></div>
+        </div>
+        <button class="af-submit" onclick="addProduct()">✅ Add Product to Store</button>
+      </div>
+    </div>
+    <div class="admin-panel" id="ap-settings">
+      <div class="settings-card"><h3>📱 WhatsApp Number</h3><div class="fg"><label>Owner WhatsApp (digits only, with country code)</label><input class="af-inp" id="set-wa" placeholder="919996673842"></div><button class="settings-save" onclick="saveWA()">💾 Save Number</button></div>
+      <div class="settings-card"><h3>🔑 Change Admin Credentials</h3><div class="fg" style="margin-bottom:12px"><label>New Username</label><input class="af-inp" id="set-uname"></div><div class="fg" style="margin-bottom:12px"><label>New Password</label><input class="af-inp" id="set-pass" type="password"></div><div class="fg"><label>Confirm Password</label><input class="af-inp" id="set-pass2" type="password"></div><button class="settings-save" onclick="saveCredentials()" style="margin-top:8px;">🔒 Update Credentials</button></div>
+      <div class="settings-card"><h3>⚠️ Reset Products</h3><p style="color:var(--muted);font-size:13px;margin-bottom:14px;">Restore the original 9 default products. Cannot be undone.</p><button style="background:var(--red);color:#fff;padding:10px 22px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;border:none;cursor:pointer;" onclick="if(confirm('Reset all products to defaults?')){resetProducts();}">⚠️ Reset Products</button></div>
+    </div>
+  </div>
+</div>
+<div class="edit-modal-ov" id="editModalOv" onclick="if(event.target===this)closeEditModal()">
+  <div class="edit-box">
+    <h3>✏️ Edit Product</h3>
+    <input type="hidden" id="edit-id">
+    <div class="af-grid">
+      <div><label class="af-label">Name</label><input class="af-inp" id="edit-name"></div>
+      <div><label class="af-label">Category</label><select class="af-inp" id="edit-cat"><option value="decor">Decor</option><option value="art">Art</option><option value="functional">Functional</option><option value="miniature">Miniature</option></select></div>
+      <div><label class="af-label">Price (₹)</label><input class="af-inp" id="edit-price" type="number"></div>
+      <div><label class="af-label">Old Price (₹)</label><input class="af-inp" id="edit-old" type="number" placeholder="Leave blank"></div>
+      <div><label class="af-label">Badge</label><select class="af-inp" id="edit-badge"><option value="">None</option><option value="new">NEW</option><option value="hot">HOT</option><option value="sale">SALE</option></select></div>
+      <div><label class="af-label">Shape</label><select class="af-inp" id="edit-shape"><option value="cube">Cube</option><option value="vase">Vase</option><option value="skull">Skull</option><option value="stand">Stand</option><option value="lamp">Lamp</option><option value="sword">Sword</option><option value="clip">Torus</option><option value="tower">Cone</option><option value="pot">Pot</option><option value="sphere">Sphere</option></select></div>
+      <div><label class="af-label">Color (hex)</label><input class="af-inp" id="edit-color"></div>
+      <div><label class="af-label">Rating</label><input class="af-inp" id="edit-rating" type="number" min="0" max="5" step="0.1"></div>
+      <div class="af-full"><label class="af-label">Description</label><textarea class="af-inp" id="edit-desc" style="min-height:80px;resize:vertical"></textarea></div>
+    </div>
+    <br>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:12px 20px;border-radius:9px;font-family:'Syne',sans-serif;font-weight:600;font-size:13px;" onclick="closeEditModal()">Cancel</button>
+      <button style="background:var(--accent);color:#0a0a0f;padding:12px 24px;border-radius:9px;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;border:none;" onclick="saveEdit()">✅ Save Changes</button>
+    </div>
+  </div>
+</div>
+<div class="viewer-ov" id="viewerOv" onclick="if(event.target===this)closeViewer()">
+  <div class="viewer-box">
+    <div class="viewer-title" id="vTitle"></div>
+    <div class="viewer-hint">👆 Drag to rotate · Scroll to zoom</div>
+    <div class="viewer-cv" id="viewerCV"></div>
+    <div class="viewer-foot">
+      <div class="viewer-price" id="vPrice"></div>
+      <button class="vbtn vbtn-close" onclick="closeViewer()">✕ Close</button>
+      <button class="vbtn vbtn-cart" onclick="addFromViewer()">＋ Cart</button>
+      <button class="vbtn vbtn-buy" onclick="buyFromViewer()">⚡ Buy Now</button>
+    </div>
+  </div>
+</div>
+<div class="modal-ov" id="buyModalOv" onclick="if(event.target===this)closeBuyModal()">
+  <div class="modal-box">
+    <h2>⚡ Buy Now via WhatsApp</h2>
+    <p class="modal-sub">Fill in your details and we'll open WhatsApp with your order ready!</p>
+    <div class="fg"><label>Your Name *</label><input type="text" id="buyName" placeholder="Arjun Sharma"></div>
+    <div class="fg"><label>Phone Number *</label><input type="tel" id="buyPhone" placeholder="+91 99966 73842"></div>
+    <div class="fg"><label>Product</label><input type="text" id="buyProduct" readonly style="opacity:.7"></div>
+    <div class="frow">
+      <div class="fg"><label>Quantity</label><select id="buyQty"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
+      <div class="fg"><label>Size</label><select id="buySize"><option>Standard</option><option>Small (70%)</option><option>Large (130%)</option><option>Extra Large (160%)</option><option>Custom Size</option></select></div>
+    </div>
+    <div class="fg"><label>Color / Material</label><select id="buyColor"><option>Default Color</option><option>Pure White (PLA)</option><option>Matte Black</option><option>Gold Metallic</option><option>Silver Metallic</option><option>Translucent Blue</option><option>Custom (mention below)</option></select></div>
+    <div class="fg"><label>Delivery Address *</label><textarea id="buyAddr" placeholder="Full address with pin code…" style="min-height:70px"></textarea></div>
+    <div class="fg"><label>Special Instructions</label><textarea id="buyNote" placeholder="Any custom requirements…" style="min-height:55px"></textarea></div>
+    <div class="modal-footer">
+      <button class="cancel-btn" onclick="closeBuyModal()">Cancel</button>
+      <button class="wa-btn" onclick="sendToWhatsApp()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.118 1.533 5.851L.057 23.855a.5.5 0 0 0 .609.609l6.004-1.476A11.94 11.94 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.96 0-3.792-.526-5.365-1.437l-.385-.231-3.99.98.998-3.873-.251-.4A9.955 9.955 0 0 1 2 12C2 6.478 6.477 2 12 2s10 4.478 10 10-4.477 10-10 10z"/></svg>
+        Send via WhatsApp
+      </button>
+    </div>
+  </div>
+</div>
+<div class="rev-modal-ov" id="revModalOv" onclick="if(event.target===this)closeRevModal()">
+  <div class="rev-modal-box">
+    <h3>✍️ Write a Review</h3>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:14px;" id="revProductName"></p>
+    <label class="af-label" style="display:block;margin-bottom:6px;">Your Rating</label>
+    <div class="star-pick" id="starPick"><button onclick="setStar(1)">★</button><button onclick="setStar(2)">★</button><button onclick="setStar(3)">★</button><button onclick="setStar(4)">★</button><button onclick="setStar(5)">★</button></div>
+    <div class="fg"><label>Your Name</label><input type="text" id="revName" placeholder="Arjun S."></div>
+    <div class="fg"><label>Review</label><textarea id="revText" placeholder="Share your experience…" style="min-height:90px"></textarea></div>
+    <button class="rev-submit" onclick="submitReview()">Submit Review</button>
+  </div>
+</div>
+<div class="goog-modal" id="googModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="goog-box">
+    <div style="font-size:32px;margin-bottom:8px;">G</div>
+    <div class="goog-title">Sign in with Google</div>
+    <div class="goog-sub">to continue to DM Creations</div>
+    <input class="goog-inp" id="googEmail" type="email" placeholder="Email or phone">
+    <button class="goog-next" onclick="doGoogleLogin()">Next</button><br>
+    <button class="goog-cancel" onclick="document.getElementById('googModal').classList.remove('open')">Cancel</button>
+  </div>
+</div>
+<div class="toast" id="toastEl"></div>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+var WA_NUMBER='919996673842';
+var adminCreds={user:'admin',pass:'dmcreations123'};
+var isAdmin=false,curProduct=null,currentUser=null,editingId=null,viewerRafId=null,isDragging=false,reviewPid=null,selStar=5,cart=[];
+var pageHistory=['home'];
+var products=[
+  {id:1,name:'Geometric Vase',cat:'decor',price:849,old:1199,badge:'sale',desc:'Parametric honeycomb lattice vase. PLA, 28 cm tall.',rating:4.8,rev:142,color:0x7c4dff,shape:'vase'},
+  {id:2,name:'Dragon Skull',cat:'art',price:1299,old:null,badge:'hot',desc:'Intricately detailed dragon skull. PETG, 15 cm jaw span.',rating:4.9,rev:89,color:0xff6b35,shape:'skull'},
+  {id:3,name:'Phone Stand Pro',cat:'functional',price:399,old:null,badge:null,desc:'Ergonomic adjustable phone holder for phones up to 7".',rating:4.6,rev:312,color:0x00e5ff,shape:'stand'},
+  {id:4,name:'Fractal Lamp Base',cat:'decor',price:1599,old:1999,badge:'new',desc:'Mesmerising fractal geometry lamp base. Stunning lit.',rating:4.7,rev:67,color:0xe8ff47,shape:'lamp'},
+  {id:5,name:'Sword of Echoes',cat:'art',price:2199,old:null,badge:'new',desc:'Fantasy wall-mount replica sword, 45 cm. Resin finish.',rating:5.0,rev:34,color:0xc0c0c0,shape:'sword'},
+  {id:6,name:'Cable Organizer',cat:'functional',price:299,old:null,badge:null,desc:'Set of 6 cable clips. Stick to any surface.',rating:4.5,rev:508,color:0x4caf50,shape:'clip'},
+  {id:7,name:'Mini Eiffel Tower',cat:'miniature',price:649,old:null,badge:null,desc:'1:500 scale Eiffel Tower. High detail desk accent.',rating:4.8,rev:198,color:0xffd700,shape:'tower'},
+  {id:8,name:'Infinity Cube',cat:'art',price:899,old:null,badge:'hot',desc:'Hypnotic infinity cube. Stress-reliever & desk art.',rating:4.9,rev:156,color:0xff4d6d,shape:'cube'},
+  {id:9,name:'Geo Planter Pot',cat:'decor',price:549,old:null,badge:null,desc:'Self-watering geometric planter with drainage + tray.',rating:4.6,rev:93,color:0x8bc34a,shape:'pot'}
+];
+var defaultProducts=products.map(function(p){return Object.assign({},p);});
+var allReviews={
+  1:[{author:'Priya M.',stars:5,text:'Absolutely stunning! The lattice pattern is super detailed.',date:'Mar 2025'},{author:'Rohit K.',stars:5,text:'Perfect gift. Quality is exceptional for the price.',date:'Feb 2025'}],
+  2:[{author:'Sneha R.',stars:5,text:'Dragon skull looks terrifying and awesome!',date:'Mar 2025'},{author:'Amit S.',stars:4,text:'Very detailed, slightly smaller than expected.',date:'Jan 2025'}],
+  3:[{author:'Kavya T.',stars:5,text:'Super sturdy and fits my phone perfectly.',date:'Mar 2025'}],
+  4:[{author:'Dev P.',stars:5,text:'With a lamp inside this is mind-blowing!',date:'Feb 2025'}],
+  5:[{author:'Ananya L.',stars:5,text:'Museum quality for this price is unreal.',date:'Mar 2025'}],
+  6:[{author:'Rajan B.',stars:4,text:'Simple but effective. Gets the job done.',date:'Feb 2025'}],
+  7:[{author:'Mira S.',stars:5,text:'Desk centrepiece for sure. Incredibly fine detail.',date:'Jan 2025'}],
+  8:[{author:'Arjun D.',stars:5,text:'Fidget toy meets art. Satisfying to hold.',date:'Mar 2025'}],
+  9:[{author:'Nisha V.',stars:5,text:'My succulent looks incredible in this.',date:'Feb 2025'}]
+};
+function getGeo(shape){
+  switch(shape){
+    case 'vase':return new THREE.CylinderGeometry(0.6,0.4,2,8);
+    case 'skull':return new THREE.DodecahedronGeometry(0.9,0);
+    case 'stand':return new THREE.BoxGeometry(1.4,0.2,0.8);
+    case 'lamp':return new THREE.OctahedronGeometry(1.0,0);
+    case 'sword':return new THREE.BoxGeometry(0.15,2.2,0.06);
+    case 'clip':return new THREE.TorusGeometry(0.6,0.2,8,16);
+    case 'tower':return new THREE.ConeGeometry(0.5,2.2,4);
+    case 'cube':return new THREE.BoxGeometry(1.2,1.2,1.2);
+    case 'pot':return new THREE.CylinderGeometry(0.8,0.5,1.4,6);
+    default:return new THREE.SphereGeometry(0.9,32,32);
+  }
+}
+function makeScene(canvas,color,shape){
+  if(!canvas)return;
+  // Set canvas CSS background so it's never white before/during WebGL init
+  canvas.style.background='#111118';
+  var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:false,preserveDrawingBuffer:false});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setClearColor(0x111118,1);
+  var scene=new THREE.Scene();
+  var cam=new THREE.PerspectiveCamera(45,1,0.1,100);
+  cam.position.z=4;
+  scene.add(new THREE.AmbientLight(0xffffff,2.0));
+  var dl=new THREE.DirectionalLight(0xffffff,2.5); dl.position.set(5,6,5); scene.add(dl);
+  var dl2=new THREE.DirectionalLight(0xffffff,1.0); dl2.position.set(-4,-3,-4); scene.add(dl2);
+  var pl=new THREE.PointLight(color,4,30); pl.position.set(-3,-2,3); scene.add(pl);
+  var mat=new THREE.MeshStandardMaterial({color:color,metalness:0.1,roughness:0.4,emissive:color,emissiveIntensity:0.2});
+  var mesh=new THREE.Mesh(getGeo(shape),mat);
+  scene.add(mesh);
+  var alive=true;
+  var lastW=0,lastH=0;
+  function resize(){
+    var parent=canvas.parentElement;
+    // prefer clientWidth from parent, fall back to canvas.width attribute
+    var w=parent&&parent.clientWidth>10?parent.clientWidth:(canvas.width||200);
+    var h=parent&&parent.clientHeight>10?parent.clientHeight:(canvas.height||200);
+    if(w!==lastW||h!==lastH){
+      lastW=w;lastH=h;
+      renderer.setSize(w,h,false);
+      cam.aspect=w/h;
+      cam.updateProjectionMatrix();
+    }
+  }
+  resize();
+  function loop(){
+    if(!alive)return;
+    requestAnimationFrame(loop);
+    mesh.rotation.y+=0.009;
+    mesh.rotation.x+=0.003;
+    resize();
+    renderer.render(scene,cam);
+  }
+  loop();
+  return function(){alive=false;renderer.dispose();};
+}
+function initHero(){
+  var canvas=document.getElementById('heroCanvas'); if(!canvas)return;
+  var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setClearColor(0,0);
+  var scene=new THREE.Scene();
+  var cam=new THREE.PerspectiveCamera(50,1,0.1,100); cam.position.set(0,1,7);
+  scene.add(new THREE.AmbientLight(0xffffff,0.4));
+  var dl=new THREE.DirectionalLight(0xe8ff47,1.2); dl.position.set(5,8,5); scene.add(dl);
+  var defs=[
+    {g:new THREE.DodecahedronGeometry(1.2,0),c:0x7c4dff,x:0,y:0,s:1.4,sp:0.008},
+    {g:new THREE.OctahedronGeometry(0.6,0),c:0xe8ff47,x:3,y:1.2,s:0.8,sp:0.012},
+    {g:new THREE.TorusGeometry(0.7,0.25,12,32),c:0xff4d6d,x:-3,y:-0.8,s:0.9,sp:0.007},
+    {g:new THREE.ConeGeometry(0.5,1.4,5),c:0x00e5ff,x:2.5,y:-1.5,s:0.7,sp:0.010},
+    {g:new THREE.BoxGeometry(0.8,0.8,0.8),c:0x4caf50,x:-2.5,y:1.8,s:0.6,sp:0.009}
+  ];
+  var objs=defs.map(function(d){
+    var pl=new THREE.PointLight(d.c,0.3,15);
+    var m=new THREE.Mesh(d.g,new THREE.MeshStandardMaterial({color:d.c,metalness:0.4,roughness:0.3}));
+    m.position.set(d.x,d.y,0); m.scale.setScalar(d.s); scene.add(m); pl.position.copy(m.position); scene.add(pl);
+    return{mesh:m,light:pl,oy:d.y,sp:d.sp,ph:Math.random()*Math.PI*2};
+  });
+  var t=0;
+  function loop(){
+    requestAnimationFrame(loop); t+=0.012;
+    objs.forEach(function(o){o.mesh.rotation.y+=o.sp;o.mesh.rotation.x+=o.sp*0.5;o.mesh.position.y=o.oy+Math.sin(t+o.ph)*0.3;o.light.position.copy(o.mesh.position);});
+    var w=canvas.clientWidth||100,h=canvas.clientHeight||100;
+    if(renderer.domElement.width!==w||renderer.domElement.height!==h){renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();}
+    renderer.render(scene,cam);
+  }
+  loop();
+}
+function renderCard(p,gridId){
+  var grid=document.getElementById(gridId); if(!grid)return;
+  var cid='c-'+gridId+'-'+p.id;
+  var bMap={sale:'badge-sale SALE',new:'badge-new NEW',hot:'badge-hot HOT'};
+  var bHtml=p.badge?'<div class="pc-badge '+bMap[p.badge].split(' ')[0]+'">'+bMap[p.badge].split(' ')[1]+'</div>':'';
+  var stars='';for(var i=0;i<5;i++)stars+=(i<Math.floor(p.rating)?'★':'☆');
+  var revs=allReviews[p.id]||[];
+  var revHtml=revs.map(function(rv){return '<div class="rev-item"><div class="rev-item-head"><span class="rev-author">'+rv.author+'</span><span class="rev-stars">'+'★'.repeat(rv.stars)+'</span><span class="rev-date">'+rv.date+'</span></div><div class="rev-text">'+rv.text+'</div></div>';}).join('');
+  var colorHex='#'+p.color.toString(16).padStart(6,'0');
+  var div=document.createElement('div');
+  div.className='pc'; div.dataset.cat=p.cat;
+  div.innerHTML='<div class="pc-canvas"><canvas id="'+cid+'"></canvas>'+bHtml+'<div class="pc-hint">↻ Click for 360° View</div></div>'+
+    '<div class="pc-body">'+
+    '<div class="stars-row"><span class="stars">'+stars+'</span>&nbsp;<span class="rev-count">('+p.rev+' reviews)</span></div>'+
+    '<div class="pc-name">'+p.name+'</div>'+
+    '<div class="pc-desc">'+p.desc+'</div>'+
+    '<div class="pc-price">₹'+p.price+(p.old?'&nbsp;<s>₹'+p.old+'</s>':'')+'</div>'+
+    '<div class="pc-actions">'+
+    '<button class="ac-btn" id="ab-'+gridId+'-'+p.id+'" onclick="event.stopPropagation();addCart('+p.id+',\''+gridId+'\')">＋ Add to Cart</button>'+
+    '<button class="buy-btn" onclick="event.stopPropagation();openBuyModal('+p.id+')">⚡ Buy Now</button>'+
+    '</div>'+
+    '<div class="reviews-section">'+
+    '<button class="reviews-toggle" onclick="event.stopPropagation();toggleRevs(\'rl-'+gridId+'-'+p.id+'\',this)">💬 Reviews ('+revs.length+') ▾</button>'+
+    '<div class="reviews-list" id="rl-'+gridId+'-'+p.id+'">'+revHtml+
+    '<button class="add-review-btn" onclick="event.stopPropagation();openRevModal('+p.id+',\''+p.name+'\')">✍️ Write a Review</button>'+
+    '</div></div></div>';
+  div.addEventListener('click',function(){openViewer(p);});
+  grid.appendChild(div);
+  // Use IntersectionObserver: only init Three.js when card is visible & has real size
+  var initiated=false;
+  function tryInit(){
+    if(initiated)return;
+    var cv=document.getElementById(cid); if(!cv)return;
+    var parent=cv.parentElement; if(!parent)return;
+    var w=parent.clientWidth;
+    var h=parent.clientHeight;
+    if(w<10||h<10)return; // not laid out yet — wait
+    initiated=true;
+    cv.style.background='#111118';
+    cv.width=w; cv.height=h;
+    makeScene(cv,p.color,p.shape);
+  }
+  if(window.IntersectionObserver){
+    var io=new IntersectionObserver(function(entries,obs){
+      if(entries[0].isIntersecting){
+        obs.disconnect();
+        // Give one more rAF for layout to settle
+        requestAnimationFrame(function(){tryInit();});
+      }
+    },{threshold:0.1});
+    io.observe(div);
+  } else {
+    // Fallback for old browsers
+    setTimeout(function(){requestAnimationFrame(function(){tryInit();});},300);
+  }
+}
+function renderGrid(gridId,cat){
+  cat=cat||'all';
+  var grid=document.getElementById(gridId); if(!grid)return;
+  grid.innerHTML='';
+  var list=gridId==='homeGrid'?products.slice(0,6):products;
+  list.filter(function(p){return cat==='all'||p.cat===cat;}).forEach(function(p){renderCard(p,gridId);});
+}
+function filter(cat,gridId,btn){
+  if(btn){var tabs=btn.closest('.tabs');if(tabs)tabs.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});btn.classList.add('on');}
+  if(gridId)renderGrid(gridId,cat);
+  else{renderGrid('homeGrid',cat);renderGrid('shopGrid',cat);}
+}
+function toggleRevs(id,btn){
+  var el=document.getElementById(id); if(!el)return;
+  var open=el.classList.toggle('open');
+  btn.textContent='💬 Reviews '+(open?'▴':'▾');
+}
+function addCart(id,gridId){
+  var p=products.find(function(x){return x.id===id;}); if(!p)return;
+  var ex=cart.find(function(x){return x.id===id;});
+  if(ex)ex.qty++;else cart.push(Object.assign({},p,{qty:1}));
+  updateBadge(); toast(p.name+' added to cart! 🎉');
+  var btn=document.getElementById('ab-'+gridId+'-'+id);
+  if(btn){btn.textContent='✓ Added';btn.classList.add('done');setTimeout(function(){btn.textContent='＋ Add to Cart';btn.classList.remove('done');},2000);}
+}
+function updateBadge(){document.getElementById('cartBadge').textContent=cart.reduce(function(s,i){return s+i.qty;},0);}
+function renderCart(){
+  var el=document.getElementById('cartContent');
+  if(!cart.length){el.innerHTML='<div class="cart-empty"><span>🛒</span><h3 style="font-size:clamp(18px,3vw,22px);margin-bottom:10px">Your cart is empty</h3><p style="color:var(--muted);font-size:14px">Browse our collection and find something amazing!</p><br><button class="btn-pri" onclick="goTo(\'shop\')" style="margin-top:18px">Start Shopping</button></div>';return;}
+  var sub=cart.reduce(function(s,i){return s+i.price*i.qty;},0);
+  var ship=99,gst=Math.round(sub*0.18);
+  var html=cart.map(function(item,idx){
+    var tid='ct-'+item.id+'-'+idx;
+    return '<div class="ci"><div class="ci-img"><canvas id="'+tid+'"></canvas></div><div><div class="ci-name">'+item.name+'</div><div style="color:var(--muted);font-size:12px">Rs.'+item.price+' each</div><div class="ci-ctrl"><button class="qb" onclick="chgQty('+idx+',-1)">-</button><span class="qn">'+item.qty+'</span><button class="qb" onclick="chgQty('+idx+',1)">+</button><span class="ci-price">Rs.'+item.price*item.qty+'</span><button class="rm-btn" onclick="removeItem('+idx+')">Remove</button></div></div></div>';
+  }).join('');
+  html+='<div class="totals-box"><div class="tot-row"><span>Subtotal</span><span>Rs.'+sub+'</span></div><div class="tot-row"><span>Shipping</span><span>Rs.'+ship+'</span></div><div class="tot-row"><span>GST (18%)</span><span>Rs.'+gst+'</span></div><div class="tot-row big"><span>Total</span><span>Rs.'+(sub+ship+gst)+'</span></div><button class="ck-btn" onclick="cartWhatsApp()">Order via WhatsApp</button></div>';
+  el.innerHTML=html;
+  setTimeout(function(){
+    cart.forEach(function(item,idx){
+      requestAnimationFrame(function(){
+        var cv=document.getElementById('ct-'+item.id+'-'+idx);
+        if(cv&&cv.parentElement){cv.width=cv.parentElement.clientWidth||100;cv.height=cv.parentElement.clientHeight||80;makeScene(cv,item.color,item.shape);}
+      });
+    });
+  },80);
+}
+function chgQty(idx,d){cart[idx].qty+=d;if(cart[idx].qty<=0)cart.splice(idx,1);updateBadge();renderCart();}
+function removeItem(idx){cart.splice(idx,1);updateBadge();renderCart();}
+function cartWhatsApp(){
+  if(!cart.length)return;
+  var items=cart.map(function(i){return '- '+i.name+' x'+i.qty+' = Rs.'+i.price*i.qty;}).join('\n');
+  var sub=cart.reduce(function(s,i){return s+i.price*i.qty;},0);
+  var name=currentUser?currentUser.name:'Customer';
+  var msg='New Order - DM Creations\n\nName: '+name+'\n\nItems:\n'+items+'\n\nSubtotal: Rs.'+sub+'\nShipping: Rs.99\nGST: Rs.'+Math.round(sub*0.18)+'\nTotal: Rs.'+(sub+99+Math.round(sub*0.18))+'\n\nPlease confirm my order. Thank you!';
+  window.open('https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(msg),'_blank');
+}
+function openBuyModal(id){
+  var p=products.find(function(x){return x.id===id;}); if(!p)return;
+  curProduct=p;
+  document.getElementById('buyProduct').value=p.name+' - Rs.'+p.price;
+  if(currentUser)document.getElementById('buyName').value=currentUser.name||'';
+  document.getElementById('buyModalOv').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeBuyModal(){document.getElementById('buyModalOv').classList.remove('open');document.body.style.overflow='';}
+function buyFromViewer(){closeViewer();if(curProduct)openBuyModal(curProduct.id);}
+function sendToWhatsApp(){
+  var name=document.getElementById('buyName').value.trim();
+  var phone=document.getElementById('buyPhone').value.trim();
+  var addr=document.getElementById('buyAddr').value.trim();
+  if(!name){toast('Please enter your name');return;}
+  if(!phone){toast('Please enter your phone number');return;}
+  if(!addr){toast('Please enter your delivery address');return;}
+  var qty=document.getElementById('buyQty').value;
+  var size=document.getElementById('buySize').value;
+  var color=document.getElementById('buyColor').value;
+  var note=document.getElementById('buyNote').value;
+  var total=curProduct.price*parseInt(qty);
+  var msg='New Order - DM Creations\n\nCustomer: '+name+'\nPhone: '+phone+'\nAddress: '+addr+'\n\nProduct: '+curProduct.name+'\nPrice: Rs.'+curProduct.price+' x '+qty+' = Rs.'+total+'\nSize: '+size+'\nColor: '+color+(note?'\nNotes: '+note:'')+'\n\nPlease confirm and share payment details. Thank you!';
+  window.open('https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(msg),'_blank');
+  closeBuyModal(); toast('Opening WhatsApp! Please send the message to place your order.');
+}
+function openViewer(p){
+  curProduct=p;
+  document.getElementById('vTitle').textContent=p.name;
+  document.getElementById('vPrice').textContent='₹'+p.price;
+  var wrap=document.getElementById('viewerCV');
+  wrap.innerHTML='';
+  document.getElementById('viewerOv').classList.add('open');
+  document.body.style.overflow='hidden';
+  setTimeout(function(){
+    var canvas=document.createElement('canvas');
+    canvas.style.cssText='display:block;width:100%;height:100%;';
+    wrap.appendChild(canvas);
+    var W=wrap.clientWidth||Math.min(window.innerWidth-48,480);
+    var H=wrap.clientHeight||300;
+    if(W<10)W=window.innerWidth-48;
+    if(H<10)H=Math.round(W*0.65);
+    canvas.width=W; canvas.height=H;
+
+    var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:false});
+    renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+    renderer.setClearColor(0x111118,1); /* solid dark — always visible */
+    renderer.setSize(W,H,false);
+
+    var scene=new THREE.Scene();
+    var cam=new THREE.PerspectiveCamera(45,W/H,0.1,100); cam.position.z=4;
+    /* bright lighting so object always shows */
+    scene.add(new THREE.AmbientLight(0xffffff,1.5));
+    var dl1=new THREE.DirectionalLight(0xffffff,2.0); dl1.position.set(5,6,5); scene.add(dl1);
+    var dl2=new THREE.DirectionalLight(0xffffff,0.8); dl2.position.set(-4,-3,-4); scene.add(dl2);
+    var pl=new THREE.PointLight(p.color,3,25); pl.position.set(-3,-2,4); scene.add(pl);
+
+    var mesh=new THREE.Mesh(
+      getGeo(p.shape),
+      new THREE.MeshStandardMaterial({color:p.color,metalness:0.2,roughness:0.5,emissive:p.color,emissiveIntensity:0.12})
+    );
+    scene.add(mesh);
+
+    var auto=true,lx=0,ly=0,rx=0,ry=0;
+    function onDown(e){auto=false;isDragging=true;var t=e.touches?e.touches[0]:e;lx=t.clientX;ly=t.clientY;}
+    function onMove(e){if(!isDragging)return;var t=e.touches?e.touches[0]:e;ry+=(t.clientX-lx)*0.015;rx+=(t.clientY-ly)*0.015;lx=t.clientX;ly=t.clientY;}
+    function onUp(){isDragging=false;}
+    canvas.addEventListener('mousedown',onDown);
+    canvas.addEventListener('touchstart',onDown,{passive:true});
+    window.addEventListener('mousemove',onMove);
+    window.addEventListener('touchmove',onMove,{passive:true});
+    window.addEventListener('mouseup',onUp);
+    window.addEventListener('touchend',onUp);
+    canvas.addEventListener('wheel',function(e){cam.position.z=Math.max(1.5,Math.min(8,cam.position.z+e.deltaY*0.005));},{passive:true});
+
+    function loop(){
+      if(!document.getElementById('viewerOv').classList.contains('open')){
+        window.removeEventListener('mousemove',onMove);
+        window.removeEventListener('touchmove',onMove);
+        window.removeEventListener('mouseup',onUp);
+        window.removeEventListener('touchend',onUp);
+        return;
+      }
+      viewerRafId=requestAnimationFrame(loop);
+      if(auto){mesh.rotation.y+=0.015;}else{mesh.rotation.y=ry;mesh.rotation.x=rx;}
+      var nw=wrap.clientWidth||W, nh=wrap.clientHeight||H;
+      if(nw>10&&nh>10&&(renderer.domElement.width!==nw||renderer.domElement.height!==nh)){
+        renderer.setSize(nw,nh,false); cam.aspect=nw/nh; cam.updateProjectionMatrix();
+      }
+      renderer.render(scene,cam);
+    }
+    loop();
+  },280);
+}
+function closeViewer(){document.getElementById('viewerOv').classList.remove('open');document.body.style.overflow='';if(viewerRafId){cancelAnimationFrame(viewerRafId);viewerRafId=null;}}
+function addFromViewer(){if(!curProduct)return;var ex=cart.find(function(x){return x.id===curProduct.id;});if(ex)ex.qty++;else cart.push(Object.assign({},curProduct,{qty:1}));updateBadge();toast(curProduct.name+' added! 🎉');closeViewer();}
+function openRevModal(pid,pname){reviewPid=pid;selStar=5;document.getElementById('revProductName').textContent=pname;document.getElementById('revName').value='';document.getElementById('revText').value='';setStar(5);document.getElementById('revModalOv').classList.add('open');document.body.style.overflow='hidden';}
+function closeRevModal(){document.getElementById('revModalOv').classList.remove('open');document.body.style.overflow='';}
+function setStar(n){selStar=n;document.querySelectorAll('#starPick button').forEach(function(b,i){b.classList.toggle('lit',i<n);});}
+function submitReview(){var name=document.getElementById('revName').value.trim()||'Anonymous';var text=document.getElementById('revText').value.trim();if(!text){toast('Please write your review');return;}if(!allReviews[reviewPid])allReviews[reviewPid]=[];allReviews[reviewPid].unshift({author:name,stars:selStar,text:text,date:'Mar 2025'});closeRevModal();renderGrid('homeGrid');renderGrid('shopGrid');toast('Review submitted! Thank you 🌟');}
+function openGoogModal(){document.getElementById('googModal').classList.add('open');}
+function doGoogleLogin(){var email=document.getElementById('googEmail').value.trim();if(!email||!email.includes('@')){alert('Please enter a valid email');return;}var name=email.split('@')[0].replace(/[._]/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});currentUser={name:name,email:email};document.getElementById('googModal').classList.remove('open');onLogin();}
+function loginGuest(){currentUser={name:'Guest',email:'guest@dmcreations.in'};onLogin();}
+function onLogin(){updateNavAuth();updateHomeCard();goTo('home');toast('Welcome, '+currentUser.name+'! 👋');}
+function logout(){currentUser=null;updateNavAuth();document.getElementById('homeUserCard').style.display='none';toast('Logged out');}
+function updateNavAuth(){var area=document.getElementById('navAuthArea');if(currentUser){var ini=currentUser.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();area.innerHTML='<button onclick="goTo(\'login\')" style="width:34px;height:34px;border-radius:50%;border:2px solid var(--accent);background:var(--accent2);color:#fff;font-family:\'Syne\',sans-serif;font-weight:700;font-size:12px;cursor:pointer;">'+ini+'</button>';}else{area.innerHTML='<button class="nav-login-btn" onclick="goTo(\'login\')">👤 Login</button>';}}
+function updateHomeCard(){var wrap=document.getElementById('homeUserCard');if(!currentUser){wrap.style.display='none';return;}var ini=currentUser.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();wrap.innerHTML='<div class="user-card"><div class="user-card-av">'+ini+'</div><div><div class="user-card-name">Welcome back, '+currentUser.name+'!</div><div class="user-card-email">'+currentUser.email+'</div></div><button class="user-card-logout" onclick="logout()">Logout</button></div>';wrap.style.display='block';}
+function doSearch(v){var drop=document.getElementById('srchDrop'),label=document.getElementById('sdLabel'),grid=document.getElementById('sdGrid');if(!v.trim()){drop.classList.remove('open');return;}var found=products.filter(function(p){return [p.name,p.cat,p.desc].join(' ').toLowerCase().includes(v.toLowerCase());});label.textContent=found.length?found.length+' result'+(found.length>1?'s':'')+' for "'+v+'"':'No results found';grid.innerHTML='';found.forEach(function(p){var cid='sd-'+p.id+'-'+Date.now();var d=document.createElement('div');d.className='sd-card';d.innerHTML='<div class="sd-thumb"><canvas id="'+cid+'"></canvas></div><div><div class="sd-name">'+p.name+'</div><div class="sd-price">Rs.'+p.price+'</div></div>';d.onclick=function(){drop.classList.remove('open');document.getElementById('deskSearch').value='';document.getElementById('mobSearch').value='';openViewer(p);};grid.appendChild(d);setTimeout(function(){requestAnimationFrame(function(){var cv=document.getElementById(cid);if(cv&&cv.parentElement){cv.width=cv.parentElement.clientWidth||40;cv.height=cv.parentElement.clientHeight||40;makeScene(cv,p.color,p.shape);}});},80);});drop.classList.add('open');}
+document.addEventListener('click',function(e){if(!e.target.closest('.srch-wrap')&&!e.target.closest('.drawer-srch')&&!e.target.closest('.srch-drop'))document.getElementById('srchDrop').classList.remove('open');});
+function toggleDrawer(){var d=document.getElementById('drawer'),h=document.getElementById('hamBtn');d.classList.toggle('open');h.classList.toggle('open');}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('hamBtn').classList.remove('open');}
+function navGo(page){goTo(page);closeDrawer();}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeDrawer();closeViewer();closeBuyModal();closeRevModal();document.getElementById('googModal').classList.remove('open');closeEditModal();}});
+// HISTORY-BASED BACK NAVIGATION
+function goTo(page,pushHist){
+  if(page==='admin'&&!isAdmin){page='adminlogin';}
+  if(pushHist!==false){
+    pageHistory.push(page);
+    history.pushState({page:page},'','#'+page);
+  }
+  // Show/hide back button
+  var backBtn=document.getElementById('backBtn');
+  if(backBtn)backBtn.style.display=(page!=='home'?'flex':'none');
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('[id^="nl-"],[id^="ml-"]').forEach(function(a){a.classList.remove('active');});
+  var pg=document.getElementById('page-'+page);if(pg)pg.classList.add('active');
+  var nl=document.getElementById('nl-'+page);if(nl)nl.classList.add('active');
+  var ml=document.getElementById('ml-'+page);if(ml)ml.classList.add('active');
+  document.getElementById('srchDrop').classList.remove('open');
+  window.scrollTo(0,0);
+  if(page==='shop')renderGrid('shopGrid');
+  if(page==='cart')renderCart();
+  if(page==='login')refreshLoginPage();
+  if(page==='admin')renderAdminDashboard();
+  if(page==='adminlogin'){document.getElementById('adminErr').style.display='none';setTimeout(function(){document.getElementById('adminUser').focus();},120);}
+}
+function navBack(){
+  if(pageHistory.length>1){
+    pageHistory.pop();
+    var prev=pageHistory[pageHistory.length-1];
+    history.back();
+  } else {
+    goTo('home');
+  }
+}
+window.addEventListener('popstate',function(e){
+  var page=(e.state&&e.state.page)?e.state.page:'home';
+  if(page==='admin'&&!isAdmin)page='adminlogin';
+  pageHistory=pageHistory.slice(0,Math.max(1,pageHistory.length-1));
+  var backBtn=document.getElementById('backBtn');
+  if(backBtn)backBtn.style.display=(page!=='home'?'flex':'none');
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('[id^="nl-"],[id^="ml-"]').forEach(function(a){a.classList.remove('active');});
+  var pg=document.getElementById('page-'+page);if(pg)pg.classList.add('active');
+  var nl=document.getElementById('nl-'+page);if(nl)nl.classList.add('active');
+  window.scrollTo(0,0);
+  if(page==='shop')renderGrid('shopGrid');
+  if(page==='cart')renderCart();
+  if(page==='login')refreshLoginPage();
+  if(page==='admin')renderAdminDashboard();
+});
+function refreshLoginPage(){var box=document.getElementById('loginBox');if(!box)return;if(currentUser){var ini=currentUser.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();box.innerHTML='<div class="login-logo">DM <span>Creations</span></div><div style="margin:24px 0;display:flex;flex-direction:column;align-items:center;gap:10px;"><div style="width:70px;height:70px;border-radius:50%;background:var(--accent2);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;font-family:\'Syne\',sans-serif;font-weight:700;border:3px solid var(--accent)">'+ini+'</div><div style="font-family:\'Syne\',sans-serif;font-weight:700;font-size:18px;">'+currentUser.name+'</div><div style="color:var(--muted);font-size:13px;">'+currentUser.email+'</div></div><button class="guest-btn" style="background:var(--red);" onclick="logout()">Logout</button><br><br><button class="btn-out" style="width:100%;margin-top:8px;" onclick="goTo(\'home\')">Back to Home</button>';}}
+function toast(msg){var t=document.getElementById('toastEl');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2800);}
+// ADMIN
+function doAdminLogin(){var u=document.getElementById('adminUser').value.trim();var p=document.getElementById('adminPass').value;if(u===adminCreds.user&&p===adminCreds.pass){isAdmin=true;document.getElementById('adminErr').style.display='none';document.getElementById('adminUser').value='';document.getElementById('adminPass').value='';goTo('admin');}else{document.getElementById('adminErr').style.display='block';document.getElementById('adminPass').value='';document.getElementById('adminPass').focus();}}
+function adminLogout(){isAdmin=false;goTo('home');toast('Admin logged out');}
+function renderAdminDashboard(){renderAdminStats();renderAdminTable();document.getElementById('set-wa').value=WA_NUMBER;document.getElementById('set-uname').value=adminCreds.user;}
+function renderAdminStats(){var el=document.getElementById('adminStatsRow');if(!el)return;var totalRevs=products.reduce(function(s,p){return s+(allReviews[p.id]||[]).length;},0);var avgP=products.length?Math.round(products.reduce(function(s,p){return s+p.price;},0)/products.length):0;el.innerHTML='<div class="admin-stat"><div class="admin-stat-n">'+products.length+'</div><div class="admin-stat-l">Total Products</div></div><div class="admin-stat"><div class="admin-stat-n">'+products.filter(function(p){return p.badge;}).length+'</div><div class="admin-stat-l">Badged Items</div></div><div class="admin-stat"><div class="admin-stat-n">'+totalRevs+'</div><div class="admin-stat-l">Reviews</div></div><div class="admin-stat"><div class="admin-stat-n">Rs.'+avgP+'</div><div class="admin-stat-l">Avg Price</div></div><div class="admin-stat"><div class="admin-stat-n" style="font-size:clamp(12px,1.5vw,16px);">'+WA_NUMBER.slice(-10)+'</div><div class="admin-stat-l">WhatsApp</div></div>';}
+function renderAdminTable(){var tb=document.getElementById('adminTbody');if(!tb)return;var bClr={sale:'background:#e8ff47;color:#0a0a0f',new:'background:#7c4dff;color:#fff',hot:'background:#ff4d6d;color:#fff'};tb.innerHTML=products.map(function(p){return '<tr><td style="color:var(--muted);font-size:11px;">#'+p.id+'</td><td><span class="td-name">'+p.name+'</span></td><td><span class="td-cat">'+p.cat+'</span></td><td style="color:var(--accent);font-weight:700;font-family:\'Syne\',sans-serif;">Rs.'+p.price+'</td><td style="color:var(--muted);text-decoration:line-through;font-size:12px;">'+(p.old?'Rs.'+p.old:'—')+'</td><td>'+(p.badge?'<span style="padding:2px 8px;border-radius:100px;font-size:9px;font-weight:800;'+bClr[p.badge]+'">'+p.badge.toUpperCase()+'</span>':'<span style="color:var(--muted);font-size:11px;">—</span>')+'</td><td style="color:var(--muted);font-size:12px;">'+p.shape+'</td><td><button class="tbl-edit" onclick="openEditModal('+p.id+')">Edit</button><button class="tbl-del" onclick="deleteProduct('+p.id+')">Del</button></td></tr>';}).join('');}
+function refreshAll(){renderAdminStats();renderAdminTable();renderGrid('homeGrid');renderGrid('shopGrid');}
+function addProduct(){var name=document.getElementById('af-name').value.trim();var desc=document.getElementById('af-desc').value.trim();var price=parseInt(document.getElementById('af-price').value)||0;if(!name){toast('Product name required');return;}if(!desc){toast('Description required');return;}if(!price){toast('Valid price required');return;}var colorHex=document.getElementById('af-color').value.trim()||'#7c4dff';var colorInt=parseInt(colorHex.replace('#',''),16)||0x7c4dff;var oldVal=document.getElementById('af-old').value;var newId=Math.max.apply(null,products.map(function(p){return p.id;}).concat([0]))+1;products.push({id:newId,name:name,cat:document.getElementById('af-cat').value,price:price,old:oldVal?parseInt(oldVal):null,badge:document.getElementById('af-badge').value||null,desc:desc,rating:parseFloat(document.getElementById('af-rating').value)||4.5,rev:0,color:colorInt,shape:document.getElementById('af-shape').value});['af-name','af-desc','af-price','af-old','af-color','af-rating'].forEach(function(id){document.getElementById(id).value='';});refreshAll();toast('"'+name+'" added to store! ✅');switchAdminTab('products',document.querySelector('.admin-tab'));}
+function deleteProduct(id){var p=products.find(function(x){return x.id===id;});if(!confirm('Delete "'+(p?p.name:'product')+'"?'))return;var idx=products.findIndex(function(x){return x.id===id;});if(idx!==-1)products.splice(idx,1);refreshAll();toast('Product deleted');}
+function openEditModal(id){var p=products.find(function(x){return x.id===id;});if(!p)return;editingId=id;document.getElementById('edit-id').value=id;document.getElementById('edit-name').value=p.name;document.getElementById('edit-cat').value=p.cat;document.getElementById('edit-price').value=p.price;document.getElementById('edit-old').value=p.old||'';document.getElementById('edit-badge').value=p.badge||'';document.getElementById('edit-shape').value=p.shape;document.getElementById('edit-color').value='#'+p.color.toString(16).padStart(6,'0');document.getElementById('edit-rating').value=p.rating;document.getElementById('edit-desc').value=p.desc;document.getElementById('editModalOv').classList.add('open');document.body.style.overflow='hidden';}
+function closeEditModal(){var el=document.getElementById('editModalOv');if(el)el.classList.remove('open');document.body.style.overflow='';}
+function saveEdit(){var idx=products.findIndex(function(x){return x.id===editingId;});if(idx===-1)return;var colorHex=document.getElementById('edit-color').value.trim()||'#7c4dff';var oldVal=document.getElementById('edit-old').value;products[idx]=Object.assign({},products[idx],{name:document.getElementById('edit-name').value.trim(),cat:document.getElementById('edit-cat').value,price:parseInt(document.getElementById('edit-price').value)||products[idx].price,old:oldVal?parseInt(oldVal):null,badge:document.getElementById('edit-badge').value||null,shape:document.getElementById('edit-shape').value,color:parseInt(colorHex.replace('#',''),16)||products[idx].color,rating:parseFloat(document.getElementById('edit-rating').value)||products[idx].rating,desc:document.getElementById('edit-desc').value.trim()});closeEditModal();refreshAll();toast('Product updated! ✅');}
+function saveWA(){var val=document.getElementById('set-wa').value.trim().replace(/\D/g,'');if(!val||val.length<10){toast('Enter a valid number');return;}WA_NUMBER=val;renderAdminStats();toast('WhatsApp updated! ✅');}
+function saveCredentials(){var u=document.getElementById('set-uname').value.trim();var p=document.getElementById('set-pass').value;var p2=document.getElementById('set-pass2').value;if(!u){toast('Username cannot be empty');return;}if(!p){toast('Password cannot be empty');return;}if(p!==p2){toast('Passwords do not match');return;}adminCreds={user:u,pass:p};document.getElementById('set-pass').value='';document.getElementById('set-pass2').value='';toast('Credentials updated! ✅');}
+function resetProducts(){products.splice(0,products.length);defaultProducts.forEach(function(p){products.push(Object.assign({},p));});refreshAll();toast('Products reset to defaults');}
+function switchAdminTab(name,btn){document.querySelectorAll('.admin-tab').forEach(function(t){t.classList.remove('on');});if(btn)btn.classList.add('on');document.querySelectorAll('.admin-panel').forEach(function(p){p.classList.remove('on');});var panel=document.getElementById('ap-'+name); if(panel)panel.classList.add('on');
+  if(name==='settings'){document.getElementById('set-wa').value=WA_NUMBER;document.getElementById('set-uname').value=adminCreds.user;}
+}
+window.addEventListener('load',function(){
+  history.replaceState({page:'home'},'','#home');
+  pageStack=['home'];
+  updateNavAuth();
+  initHero();
+  renderGrid('homeGrid');
+  renderGrid('shopGrid');
+});
+</script>
+</body>
+</html>
