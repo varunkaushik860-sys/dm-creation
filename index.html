@@ -66,6 +66,18 @@ nav{position:fixed;inset:0 0 auto 0;z-index:900;height:var(--nh);background:rgba
 .fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--accent);}
 .fg select option{background:#1a1a26;}
 .fg textarea{resize:vertical;min-height:80px;}
+.img-upload-wrap{position:relative;width:100%;border:2px dashed var(--border);border-radius:10px;background:var(--bg3);transition:border-color .2s,background .2s;cursor:pointer;overflow:hidden;}
+.img-upload-wrap:hover{border-color:rgba(232,255,71,.5);background:rgba(232,255,71,.04);}
+.img-upload-wrap input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.img-upload-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:22px 14px;pointer-events:none;}
+.img-upload-icon{font-size:28px;line-height:1;}
+.img-upload-label{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);}
+.img-upload-sub{font-size:11px;color:var(--muted);}
+.img-preview-wrap{position:relative;width:100%;}
+.img-preview-wrap img{width:100%;max-height:180px;object-fit:cover;border-radius:8px;display:block;}
+.img-preview-clear{position:absolute;top:7px;right:7px;background:rgba(0,0,0,.75);color:#fff;border:none;border-radius:50%;width:24px;height:24px;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s;font-family:inherit;}
+.img-preview-clear:hover{background:var(--red);}
+.pc-img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .btn-pri{background:var(--accent);color:#0a0a0f;padding:clamp(12px,1.5vw,14px) clamp(20px,2.5vw,28px);font-family:'Syne',sans-serif;font-weight:700;font-size:clamp(13px,1.2vw,15px);border-radius:10px;border:none;transition:all .25s;white-space:nowrap;}
 .btn-pri:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(232,255,71,.3);}
@@ -481,6 +493,21 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:clamp(36
           <div><label class="af-label">3D Colour (hex e.g. #7c4dff)</label><input class="af-inp" id="af-color" placeholder="#7c4dff"></div>
           <div><label class="af-label">Rating (0–5)</label><input class="af-inp" id="af-rating" type="number" min="0" max="5" step="0.1" placeholder="4.8"></div>
           <div class="af-full"><label class="af-label">Description *</label><textarea class="af-inp" id="af-desc" style="min-height:80px;resize:vertical" placeholder="Short product description…"></textarea></div>
+          <div class="af-full"><label class="af-label">Product Image <span style="color:var(--muted);font-weight:400;">(optional — replaces 3D preview)</span></label>
+            <div class="img-upload-wrap" id="af-img-wrap">
+              <input type="file" accept="image/*" onchange="handleImageUpload(this,'af-img-preview','af-img-wrap','af-img-data')">
+              <div class="img-upload-placeholder" id="af-img-placeholder">
+                <div class="img-upload-icon">🖼️</div>
+                <div class="img-upload-label">Click or drag to upload image</div>
+                <div class="img-upload-sub">JPG, PNG, WEBP — max 5 MB</div>
+              </div>
+              <div class="img-preview-wrap" id="af-img-preview" style="display:none">
+                <img id="af-img-thumb" src="" alt="Preview">
+                <button class="img-preview-clear" onclick="clearImage('af-img-preview','af-img-placeholder','af-img-data',event)">✕</button>
+              </div>
+            </div>
+            <input type="hidden" id="af-img-data" value="">
+          </div>
         </div>
         <button class="af-submit" onclick="addProduct()">✅ Add Product to Store</button>
       </div>
@@ -506,6 +533,21 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:clamp(36
       <div><label class="af-label">Color (hex)</label><input class="af-inp" id="edit-color"></div>
       <div><label class="af-label">Rating</label><input class="af-inp" id="edit-rating" type="number" min="0" max="5" step="0.1"></div>
       <div class="af-full"><label class="af-label">Description</label><textarea class="af-inp" id="edit-desc" style="min-height:80px;resize:vertical"></textarea></div>
+      <div class="af-full"><label class="af-label">Product Image <span style="color:var(--muted);font-weight:400;">(optional — replaces 3D preview)</span></label>
+        <div class="img-upload-wrap" id="edit-img-wrap">
+          <input type="file" accept="image/*" onchange="handleImageUpload(this,'edit-img-preview','edit-img-wrap','edit-img-data')">
+          <div class="img-upload-placeholder" id="edit-img-placeholder">
+            <div class="img-upload-icon">🖼️</div>
+            <div class="img-upload-label">Click or drag to upload image</div>
+            <div class="img-upload-sub">JPG, PNG, WEBP — max 5 MB</div>
+          </div>
+          <div class="img-preview-wrap" id="edit-img-preview" style="display:none">
+            <img id="edit-img-thumb" src="" alt="Preview">
+            <button class="img-preview-clear" onclick="clearImage('edit-img-preview','edit-img-placeholder','edit-img-data',event)">✕</button>
+          </div>
+        </div>
+        <input type="hidden" id="edit-img-data" value="">
+      </div>
     </div>
     <br>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -699,7 +741,10 @@ function renderCard(p,gridId){
   var colorHex='#'+p.color.toString(16).padStart(6,'0');
   var div=document.createElement('div');
   div.className='pc'; div.dataset.cat=p.cat;
-  div.innerHTML='<div class="pc-canvas"><canvas id="'+cid+'"></canvas>'+bHtml+'<div class="pc-hint">↻ Click for 360° View</div></div>'+
+  var canvasOrImg=p.img
+    ? '<img class="pc-img" src="'+p.img+'" alt="'+p.name+'" loading="lazy">'+bHtml+'<div class="pc-hint">↻ Click for 360° View</div>'
+    : '<canvas id="'+cid+'"></canvas>'+bHtml+'<div class="pc-hint">↻ Click for 360° View</div>';
+  div.innerHTML='<div class="pc-canvas">'+canvasOrImg+'</div>'+
     '<div class="pc-body">'+
     '<div class="stars-row"><span class="stars">'+stars+'</span>&nbsp;<span class="rev-count">('+p.rev+' reviews)</span></div>'+
     '<div class="pc-name">'+p.name+'</div>'+
@@ -970,16 +1015,48 @@ function renderAdminDashboard(){renderAdminStats();renderAdminTable();document.g
 function renderAdminStats(){var el=document.getElementById('adminStatsRow');if(!el)return;var totalRevs=products.reduce(function(s,p){return s+(allReviews[p.id]||[]).length;},0);var avgP=products.length?Math.round(products.reduce(function(s,p){return s+p.price;},0)/products.length):0;el.innerHTML='<div class="admin-stat"><div class="admin-stat-n">'+products.length+'</div><div class="admin-stat-l">Total Products</div></div><div class="admin-stat"><div class="admin-stat-n">'+products.filter(function(p){return p.badge;}).length+'</div><div class="admin-stat-l">Badged Items</div></div><div class="admin-stat"><div class="admin-stat-n">'+totalRevs+'</div><div class="admin-stat-l">Reviews</div></div><div class="admin-stat"><div class="admin-stat-n">Rs.'+avgP+'</div><div class="admin-stat-l">Avg Price</div></div><div class="admin-stat"><div class="admin-stat-n" style="font-size:clamp(12px,1.5vw,16px);">'+WA_NUMBER.slice(-10)+'</div><div class="admin-stat-l">WhatsApp</div></div>';}
 function renderAdminTable(){var tb=document.getElementById('adminTbody');if(!tb)return;var bClr={sale:'background:#e8ff47;color:#0a0a0f',new:'background:#7c4dff;color:#fff',hot:'background:#ff4d6d;color:#fff'};tb.innerHTML=products.map(function(p){return '<tr><td style="color:var(--muted);font-size:11px;">#'+p.id+'</td><td><span class="td-name">'+p.name+'</span></td><td><span class="td-cat">'+p.cat+'</span></td><td style="color:var(--accent);font-weight:700;font-family:\'Syne\',sans-serif;">Rs.'+p.price+'</td><td style="color:var(--muted);text-decoration:line-through;font-size:12px;">'+(p.old?'Rs.'+p.old:'—')+'</td><td>'+(p.badge?'<span style="padding:2px 8px;border-radius:100px;font-size:9px;font-weight:800;'+bClr[p.badge]+'">'+p.badge.toUpperCase()+'</span>':'<span style="color:var(--muted);font-size:11px;">—</span>')+'</td><td style="color:var(--muted);font-size:12px;">'+p.shape+'</td><td><button class="tbl-edit" onclick="openEditModal('+p.id+')">Edit</button><button class="tbl-del" onclick="deleteProduct('+p.id+')">Del</button></td></tr>';}).join('');}
 function refreshAll(){renderAdminStats();renderAdminTable();renderGrid('homeGrid');renderGrid('shopGrid');}
-function addProduct(){var name=document.getElementById('af-name').value.trim();var desc=document.getElementById('af-desc').value.trim();var price=parseInt(document.getElementById('af-price').value)||0;if(!name){toast('Product name required');return;}if(!desc){toast('Description required');return;}if(!price){toast('Valid price required');return;}var colorHex=document.getElementById('af-color').value.trim()||'#7c4dff';var colorInt=parseInt(colorHex.replace('#',''),16)||0x7c4dff;var oldVal=document.getElementById('af-old').value;var newId=Math.max.apply(null,products.map(function(p){return p.id;}).concat([0]))+1;products.push({id:newId,name:name,cat:document.getElementById('af-cat').value,price:price,old:oldVal?parseInt(oldVal):null,badge:document.getElementById('af-badge').value||null,desc:desc,rating:parseFloat(document.getElementById('af-rating').value)||4.5,rev:0,color:colorInt,shape:document.getElementById('af-shape').value});['af-name','af-desc','af-price','af-old','af-color','af-rating'].forEach(function(id){document.getElementById(id).value='';});refreshAll();toast('"'+name+'" added to store! ✅');switchAdminTab('products',document.querySelector('.admin-tab'));}
+function addProduct(){var name=document.getElementById('af-name').value.trim();var desc=document.getElementById('af-desc').value.trim();var price=parseInt(document.getElementById('af-price').value)||0;if(!name){toast('Product name required');return;}if(!desc){toast('Description required');return;}if(!price){toast('Valid price required');return;}var colorHex=document.getElementById('af-color').value.trim()||'#7c4dff';var colorInt=parseInt(colorHex.replace('#',''),16)||0x7c4dff;var oldVal=document.getElementById('af-old').value;var imgData=document.getElementById('af-img-data').value||null;var newId=Math.max.apply(null,products.map(function(p){return p.id;}).concat([0]))+1;products.push({id:newId,name:name,cat:document.getElementById('af-cat').value,price:price,old:oldVal?parseInt(oldVal):null,badge:document.getElementById('af-badge').value||null,desc:desc,rating:parseFloat(document.getElementById('af-rating').value)||4.5,rev:0,color:colorInt,shape:document.getElementById('af-shape').value,img:imgData});['af-name','af-desc','af-price','af-old','af-color','af-rating'].forEach(function(id){document.getElementById(id).value='';});clearImage('af-img-preview','af-img-placeholder','af-img-data',null);refreshAll();toast('"'+name+'" added to store! ✅');switchAdminTab('products',document.querySelector('.admin-tab'));}
 function deleteProduct(id){var p=products.find(function(x){return x.id===id;});if(!confirm('Delete "'+(p?p.name:'product')+'"?'))return;var idx=products.findIndex(function(x){return x.id===id;});if(idx!==-1)products.splice(idx,1);refreshAll();toast('Product deleted');}
-function openEditModal(id){var p=products.find(function(x){return x.id===id;});if(!p)return;editingId=id;document.getElementById('edit-id').value=id;document.getElementById('edit-name').value=p.name;document.getElementById('edit-cat').value=p.cat;document.getElementById('edit-price').value=p.price;document.getElementById('edit-old').value=p.old||'';document.getElementById('edit-badge').value=p.badge||'';document.getElementById('edit-shape').value=p.shape;document.getElementById('edit-color').value='#'+p.color.toString(16).padStart(6,'0');document.getElementById('edit-rating').value=p.rating;document.getElementById('edit-desc').value=p.desc;document.getElementById('editModalOv').classList.add('open');document.body.style.overflow='hidden';}
+function openEditModal(id){var p=products.find(function(x){return x.id===id;});if(!p)return;editingId=id;document.getElementById('edit-id').value=id;document.getElementById('edit-name').value=p.name;document.getElementById('edit-cat').value=p.cat;document.getElementById('edit-price').value=p.price;document.getElementById('edit-old').value=p.old||'';document.getElementById('edit-badge').value=p.badge||'';document.getElementById('edit-shape').value=p.shape;document.getElementById('edit-color').value='#'+p.color.toString(16).padStart(6,'0');document.getElementById('edit-rating').value=p.rating;document.getElementById('edit-desc').value=p.desc;
+  // Load existing image if any
+  var imgData=p.img||'';
+  document.getElementById('edit-img-data').value=imgData;
+  if(imgData){document.getElementById('edit-img-thumb').src=imgData;document.getElementById('edit-img-preview').style.display='block';document.getElementById('edit-img-placeholder').style.display='none';}else{document.getElementById('edit-img-preview').style.display='none';document.getElementById('edit-img-placeholder').style.display='flex';}
+  document.getElementById('editModalOv').classList.add('open');document.body.style.overflow='hidden';}
 function closeEditModal(){var el=document.getElementById('editModalOv');if(el)el.classList.remove('open');document.body.style.overflow='';}
-function saveEdit(){var idx=products.findIndex(function(x){return x.id===editingId;});if(idx===-1)return;var colorHex=document.getElementById('edit-color').value.trim()||'#7c4dff';var oldVal=document.getElementById('edit-old').value;products[idx]=Object.assign({},products[idx],{name:document.getElementById('edit-name').value.trim(),cat:document.getElementById('edit-cat').value,price:parseInt(document.getElementById('edit-price').value)||products[idx].price,old:oldVal?parseInt(oldVal):null,badge:document.getElementById('edit-badge').value||null,shape:document.getElementById('edit-shape').value,color:parseInt(colorHex.replace('#',''),16)||products[idx].color,rating:parseFloat(document.getElementById('edit-rating').value)||products[idx].rating,desc:document.getElementById('edit-desc').value.trim()});closeEditModal();refreshAll();toast('Product updated! ✅');}
+function saveEdit(){var idx=products.findIndex(function(x){return x.id===editingId;});if(idx===-1)return;var colorHex=document.getElementById('edit-color').value.trim()||'#7c4dff';var oldVal=document.getElementById('edit-old').value;var imgData=document.getElementById('edit-img-data').value||null;products[idx]=Object.assign({},products[idx],{name:document.getElementById('edit-name').value.trim(),cat:document.getElementById('edit-cat').value,price:parseInt(document.getElementById('edit-price').value)||products[idx].price,old:oldVal?parseInt(oldVal):null,badge:document.getElementById('edit-badge').value||null,shape:document.getElementById('edit-shape').value,color:parseInt(colorHex.replace('#',''),16)||products[idx].color,rating:parseFloat(document.getElementById('edit-rating').value)||products[idx].rating,desc:document.getElementById('edit-desc').value.trim(),img:imgData});closeEditModal();refreshAll();toast('Product updated! ✅');}
 function saveWA(){var val=document.getElementById('set-wa').value.trim().replace(/\D/g,'');if(!val||val.length<10){toast('Enter a valid number');return;}WA_NUMBER=val;renderAdminStats();toast('WhatsApp updated! ✅');}
 function saveCredentials(){var u=document.getElementById('set-uname').value.trim();var p=document.getElementById('set-pass').value;var p2=document.getElementById('set-pass2').value;if(!u){toast('Username cannot be empty');return;}if(!p){toast('Password cannot be empty');return;}if(p!==p2){toast('Passwords do not match');return;}adminCreds={user:u,pass:p};document.getElementById('set-pass').value='';document.getElementById('set-pass2').value='';toast('Credentials updated! ✅');}
 function resetProducts(){products.splice(0,products.length);defaultProducts.forEach(function(p){products.push(Object.assign({},p));});refreshAll();toast('Products reset to defaults');}
 function switchAdminTab(name,btn){document.querySelectorAll('.admin-tab').forEach(function(t){t.classList.remove('on');});if(btn)btn.classList.add('on');document.querySelectorAll('.admin-panel').forEach(function(p){p.classList.remove('on');});var panel=document.getElementById('ap-'+name); if(panel)panel.classList.add('on');
   if(name==='settings'){document.getElementById('set-wa').value=WA_NUMBER;document.getElementById('set-uname').value=adminCreds.user;}
+}
+function handleImageUpload(input,previewId,wrapId,dataId){
+  var file=input.files&&input.files[0];
+  if(!file)return;
+  if(file.size>5*1024*1024){toast('Image too large — max 5 MB');input.value='';return;}
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var data=e.target.result;
+    document.getElementById(dataId).value=data;
+    var thumb=document.getElementById(previewId.replace('-preview','-thumb'));
+    if(thumb)thumb.src=data;
+    document.getElementById(previewId).style.display='block';
+    var ph=document.getElementById(previewId.replace('-preview','-placeholder'));
+    if(ph)ph.style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+function clearImage(previewId,placeholderId,dataId,evt){
+  if(evt){evt.preventDefault();evt.stopPropagation();}
+  document.getElementById(dataId).value='';
+  var thumb=document.getElementById(previewId.replace('-preview','-thumb'));
+  if(thumb)thumb.src='';
+  document.getElementById(previewId).style.display='none';
+  document.getElementById(placeholderId).style.display='flex';
+  // reset file input inside the wrap
+  var wrap=document.getElementById(previewId.replace('-preview','-wrap'));
+  if(wrap){var fi=wrap.querySelector('input[type=file]');if(fi)fi.value='';}
 }
 window.addEventListener('load',function(){
   history.replaceState({page:'home'},'','#home');
